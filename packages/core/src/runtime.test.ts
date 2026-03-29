@@ -85,6 +85,37 @@ describe('LayoutRuntime', () => {
     expect(runtime.getMaterializationMode('a')).toBeUndefined()
   })
 
+  it('commits batched operations atomically through dispatchAll', () => {
+    const runtime = new LayoutRuntime({
+      constraints: { columns: 4 },
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+    })
+
+    const committed = runtime.dispatchAll([
+      { id: 'a', placement: { x: 1, y: 0 }, type: 'move' },
+      { id: 'a', size: { w: 2, h: 1 }, type: 'resize' },
+    ])
+
+    expect(committed).toMatchObject({
+      changed: true,
+      committed: true,
+    })
+    expect(runtime.getNode('a')).toEqual({ id: 'a', x: 1, y: 0, w: 2, h: 1 })
+
+    const rejected = runtime.dispatchAll([
+      { id: 'a', placement: { x: 2, y: 0 }, type: 'move' },
+      { id: 'a', size: { w: 3, h: 1 }, type: 'resize' },
+    ])
+
+    expect(rejected).toMatchObject({
+      changed: false,
+      committed: false,
+      failedAt: 1,
+    })
+    expect(runtime.getNode('a')).toEqual({ id: 'a', x: 1, y: 0, w: 2, h: 1 })
+  })
+
   it('queries visible rects using current metrics', () => {
     const runtime = new LayoutRuntime({
       metrics,

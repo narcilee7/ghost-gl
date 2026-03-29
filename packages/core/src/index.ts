@@ -17,6 +17,17 @@ export {
   intersectsRect,
   projectNodeToRect,
 } from './geometry'
+export type {
+  LayoutHistoryEntry,
+  LayoutHistoryNavigationResult,
+  LayoutHistoryState,
+} from './history'
+export {
+  createLayoutHistory,
+  recordLayoutTransaction,
+  redoLayoutHistory,
+  undoLayoutHistory,
+} from './history'
 export type { NodePlacement, NodeSize } from './layout'
 export { collides, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
@@ -34,6 +45,11 @@ export type {
   MaterializationPlanResult,
 } from './runtime'
 export { LayoutRuntime } from './runtime'
+export type {
+  LayoutTransactionOptions,
+  LayoutTransactionResult,
+} from './transactions'
+export { applyLayoutTransaction } from './transactions'
 export type {
   GridMetrics,
   LayoutNode,

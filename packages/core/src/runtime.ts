@@ -16,6 +16,7 @@ import {
   type LayoutOperation,
   type LayoutOperationResult,
 } from './operations'
+import { applyLayoutTransaction, type LayoutTransactionResult } from './transactions'
 import type {
   GridMetrics,
   LayoutNode,
@@ -112,6 +113,26 @@ export class LayoutRuntime<TData = unknown> {
 
     this.nodes = [...result.nextNodes]
     this.syncOperationCaches(operation)
+    this.rebuildState()
+
+    return result
+  }
+
+  dispatchAll(operations: readonly LayoutOperation<TData>[]): LayoutTransactionResult<TData> {
+    const result = applyLayoutTransaction(this.nodes, operations, {
+      constraints: this.constraints,
+    })
+
+    if (!result.committed) {
+      return result
+    }
+
+    this.nodes = [...result.nextNodes]
+
+    for (const operation of operations) {
+      this.syncOperationCaches(operation)
+    }
+
     this.rebuildState()
 
     return result
