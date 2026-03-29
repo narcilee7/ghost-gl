@@ -20,7 +20,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": false
   },
   "scripts": {
     "bench": "tsx bench/index.ts",
