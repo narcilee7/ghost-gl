@@ -24,8 +24,28 @@ export interface LayoutNode<TData = unknown> {
   y: number
   w: number
   h: number
+  /** Static nodes act as immovable barriers */
   static?: boolean
+  /** Pinned nodes cannot be displaced by other nodes' collisions */
+  pinned?: boolean
+  /** Whether the node can be dragged (defaults to true) */
+  draggable?: boolean
+  /** Whether the node can be resized (defaults to true) */
+  resizable?: boolean
   data?: TData
+}
+
+/** Layout behavior policy configuration */
+export interface LayoutPolicy {
+  /** Direction for collision resolution */
+  collisionDirection?: 'vertical' | 'horizontal' | 'both'
+  /** Whether to auto-compact after operations */
+  autoCompact?: boolean
+  /** Whether static nodes can be overlapped by drag operations */
+  allowStaticOverlap?: boolean
+  /** Minimum gap between nodes (in grid units) */
+  minGapX?: number
+  minGapY?: number
 }
 
 export interface LayoutRect<TData = unknown> extends Rect {

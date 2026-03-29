@@ -48,7 +48,7 @@ export {
   previewInteraction,
 } from './interaction'
 export type { CompactDirection, CompactOptions, NodePlacement, NodeSize } from './layout'
-export { collides, compactLayout, moveNode, resizeNode } from './layout'
+export { collides, compactLayout, findAutoPlacement, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
 export type {
   LayoutOperation,
@@ -74,6 +74,7 @@ export { applyLayoutTransaction } from './transactions'
 export type {
   GridMetrics,
   LayoutNode,
+  LayoutPolicy,
   LayoutRect,
   MaterializationMode,
   MaterializedNode,

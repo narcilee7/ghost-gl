@@ -1,6 +1,6 @@
 import RBush from 'rbush'
 
-import type { LayoutNode } from './types'
+import type { LayoutNode, LayoutPolicy } from './types'
 
 export type CompactDirection = 'up' | 'down'
 
@@ -22,6 +22,7 @@ export interface NodeSize {
 export interface LayoutMutationContext<TData = unknown> {
   itemById: Map<string, SpatialItem<TData>>
   nodes: LayoutNode<TData>[]
+  policy: LayoutPolicy
   tree: RBush<SpatialItem<TData>>
 }
 
@@ -81,7 +82,8 @@ export function resizeNodeWithContext<TData = unknown>(
 }
 
 export function createLayoutMutationContext<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[]
+  nodes: readonly LayoutNode<TData>[],
+  policy: LayoutPolicy = {}
 ): LayoutMutationContext<TData> {
   const nextNodes = nodes.map((node) => ({ ...node }))
   const { itemById, tree } = createSpatialIndex(nextNodes)
@@ -89,6 +91,7 @@ export function createLayoutMutationContext<TData = unknown>(
   return {
     itemById,
     nodes: nextNodes,
+    policy,
     tree,
   }
 }
@@ -114,7 +117,8 @@ export function finalizeLayoutMutation<TData = unknown>(
  */
 export function compactLayout<TData = unknown>(
   nodes: readonly LayoutNode<TData>[],
-  options: CompactOptions = {}
+  options: CompactOptions = {},
+  policy: LayoutPolicy = {}
 ): LayoutNode<TData>[] {
   const direction = options.direction ?? 'up'
 
@@ -124,7 +128,7 @@ export function compactLayout<TData = unknown>(
   }
 
   // Create context for efficient spatial queries
-  const context = createLayoutMutationContext(nodes)
+  const context = createLayoutMutationContext(nodes, policy)
 
   // Get all column positions
   const columnXs = new Set<number>()
@@ -218,14 +222,18 @@ function mutateNode<TData = unknown>(
 
   mutate(targetItem.node)
   syncSpatialItem(context.tree, targetItem)
-  resolveNodeCollisions(context.tree, context.itemById, targetItem.id)
+  resolveNodeCollisions(context.tree, context.itemById, targetItem.id, context.policy)
 }
 
 function resolveNodeCollisions<TData = unknown>(
   tree: RBush<SpatialItem<TData>>,
   itemById: Map<string, SpatialItem<TData>>,
-  rootId: string
+  rootId: string,
+  policy: LayoutPolicy = {}
 ): void {
+  const direction = policy.collisionDirection ?? 'vertical'
+  const allowStaticOverlap = policy.allowStaticOverlap ?? false
+
   const queue = [rootId]
   let cursor = 0
 
@@ -243,6 +251,9 @@ function resolveNodeCollisions<TData = unknown>(
       continue
     }
 
+    // Pinned nodes cannot be displaced - they force others to move
+    const isPinned = current.node.pinned ?? false
+
     while (true) {
       const colliders = sortSpatialItems(
         tree
@@ -254,21 +265,50 @@ function resolveNodeCollisions<TData = unknown>(
         break
       }
 
-      const staticBlocker = colliders.find((item) => item.node.static)
+      // Check for static blockers
+      if (!allowStaticOverlap) {
+        const staticBlocker = colliders.find((item) => item.node.static)
 
-      if (staticBlocker != null) {
-        current.node.y = staticBlocker.node.y + staticBlocker.node.h
-        syncSpatialItem(tree, current)
+        if (staticBlocker != null && !isPinned) {
+          // Current node must move below static blocker
+          current.node.y = staticBlocker.node.y + staticBlocker.node.h
+          syncSpatialItem(tree, current)
+          continue
+        }
+      }
+
+      // Find the best node to displace (prefer unpinned, non-static)
+      const displaced =
+        colliders.find((item) => !(item.node.pinned ?? false) && !item.node.static) ??
+        colliders.find((item) => !item.node.static) ?? // fallback to any non-static
+        colliders[0] // final fallback
+
+      if (displaced == null || (displaced.node.pinned ?? false)) {
+        // Can't displace pinned nodes, move current instead
+        if (direction === 'vertical' || direction === 'both') {
+          current.node.y =
+            displaced?.node.y !== undefined
+              ? displaced.node.y + displaced.node.h
+              : current.node.y + 1
+          syncSpatialItem(tree, current)
+        }
+        if (direction === 'horizontal' || direction === 'both') {
+          current.node.x =
+            displaced?.node.x !== undefined
+              ? displaced.node.x + displaced.node.w
+              : current.node.x + 1
+          syncSpatialItem(tree, current)
+        }
         continue
       }
 
-      const displaced = colliders[0]
-
-      if (displaced == null) {
-        break
+      // Displace the target node
+      if (direction === 'vertical' || direction === 'both') {
+        displaced.node.y = current.node.y + current.node.h
       }
-
-      displaced.node.y = current.node.y + current.node.h
+      if (direction === 'horizontal' || direction === 'both') {
+        displaced.node.x = current.node.x + current.node.w
+      }
       syncSpatialItem(tree, displaced)
       queue.push(displaced.id)
     }
@@ -348,4 +388,65 @@ function toSpatialItem<TData = unknown>(node: LayoutNode<TData>): SpatialItem<TD
     minY: node.y,
     node,
   }
+}
+
+/**
+ * Find the best placement for a new node using auto-placement algorithm.
+ *
+ * Strategy:
+ * 1. Try to place at the top-left (0, 0) first
+ * 2. If collision, scan right then down
+ * 3. Respect static and pinned nodes as barriers
+ *
+ * @param nodes - Existing layout nodes
+ * @param nodeSize - Size of the new node (w, h)
+ * @param options - Optional placement constraints
+ * @returns Best placement coordinates { x, y } or null if no space found
+ */
+export function findAutoPlacement(
+  nodes: readonly LayoutNode[],
+  nodeSize: { w: number; h: number },
+  options: {
+    maxX?: number
+    maxY?: number
+    startX?: number
+    startY?: number
+  } = {}
+): { x: number; y: number } | null {
+  const { w, h } = nodeSize
+  const { maxX = Number.POSITIVE_INFINITY, maxY = Number.POSITIVE_INFINITY } = options
+  let { startX = 0, startY = 0 } = options
+
+  // Ensure start positions are non-negative
+  startX = Math.max(0, startX)
+  startY = Math.max(0, startY)
+
+  // Create a temporary context for collision checking
+  const context = createLayoutMutationContext(nodes)
+
+  // Scan for placement starting from start position
+  for (let y = startY; y < maxY; y++) {
+    for (let x = startX; x < maxX; x++) {
+      // Check if this position is free
+      const tempNode = { id: 'temp', x, y, w, h }
+      const collisions = findCollisionsAt(context, tempNode, y)
+        .filter((n) => !(n.x + n.w <= x || x + w <= n.x)) // precise x check
+        .filter((n) => !(n.y + n.h <= y || y + h <= n.y)) // precise y check
+
+      // Filter out collisions with static/pinned nodes (they are barriers)
+      const blocked = collisions.some((n) => (n.static ?? false) || (n.pinned ?? false))
+
+      if (!blocked && collisions.length === 0) {
+        return { x, y }
+      }
+
+      // Skip ahead if blocked by a wide node
+      const rightmostBlocker = collisions.reduce((max, n) => Math.max(max, n.x + n.w), x + 1)
+      if (rightmostBlocker > x + 1) {
+        x = rightmostBlocker - 1 // -1 because loop will increment
+      }
+    }
+  }
+
+  return null // No valid placement found
 }
