@@ -23,7 +23,12 @@
     "provenance": true
   },
   "scripts": {
-    "bench": "tsx bench/runtime.bench.ts",
+    "bench": "tsx bench/index.ts",
+    "bench:core": "tsx bench/index.ts core",
+    "bench:heavy": "tsx bench/index.ts heavy",
+    "bench:stress": "tsx bench/index.ts stress",
+    "bench:compare": "tsx bench/suites/comparison.bench.ts",
+    "bench:baseline": "tsx bench/index.ts --baseline",
     "build": "tsup src/index.ts --clean --dts --format esm,cjs",
     "clean": "rimraf coverage dist",
     "lint": "biome check bench package.json src tsconfig.json",
