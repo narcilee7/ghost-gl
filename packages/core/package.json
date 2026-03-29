@@ -1,0 +1,33 @@
+{
+  "name": "ghost-gl-core",
+  "version": "0.0.0",
+  "description": "Core layout and materialization types for ghost-gl.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --clean --dts --format esm,cjs",
+    "clean": "rimraf coverage dist",
+    "lint": "biome check package.json src tsconfig.json",
+    "lint:fix": "biome check package.json src tsconfig.json --write",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}
