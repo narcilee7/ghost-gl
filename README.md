@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/narcilee7/ghost-gl/blob/main/LICENSE">
-    <img src="https://img.shields.io/npm/l/ghost-gl-core" alt="License" />
+    <img src="https://img.shields.io/github/license/narcilee7/ghost-gl" alt="License" />
   </a>
   <a href="https://www.npmjs.com/package/ghost-gl-core">
     <img src="https://img.shields.io/npm/v/ghost-gl-core" alt="npm version" />
