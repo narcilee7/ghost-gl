@@ -1,0 +1,2 @@
+# Empty file to override root .gitignore
+# All files in package.json "files" field will be included
