@@ -1,6 +1,6 @@
 {
   "name": "ghost-gl-core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Core layout and materialization types for ghost-gl.",
   "license": "MIT",
   "type": "module",
