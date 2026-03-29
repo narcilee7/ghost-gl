@@ -23,14 +23,19 @@
     "provenance": true
   },
   "scripts": {
+    "bench": "tsx bench/runtime.bench.ts",
     "build": "tsup src/index.ts --clean --dts --format esm,cjs",
     "clean": "rimraf coverage dist",
-    "lint": "biome check package.json src tsconfig.json",
-    "lint:fix": "biome check package.json src tsconfig.json --write",
+    "lint": "biome check bench package.json src tsconfig.json",
+    "lint:fix": "biome check bench package.json src tsconfig.json --write",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "nanoevents": "^9.1.0"
+  },
+  "devDependencies": {
+    "tinybench": "^2.9.0",
+    "tsx": "^4.21.0"
   }
 }
