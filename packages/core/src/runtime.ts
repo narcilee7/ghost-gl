@@ -1,3 +1,10 @@
+import {
+  assertLayoutNode,
+  assertLayoutNodes,
+  type LayoutConstraints,
+  validatePlacement,
+  validateSize,
+} from './constraints'
 import { estimateLayoutBounds, projectNodeToRect } from './geometry'
 import {
   type PlanMaterializationInput,
@@ -18,6 +25,7 @@ import type {
 import { queryViewport } from './viewport'
 
 export interface LayoutRuntimeOptions<TData = unknown> {
+  constraints?: LayoutConstraints
   metrics: GridMetrics
   nodes?: readonly LayoutNode<TData>[]
 }
@@ -44,6 +52,7 @@ export interface MaterializationPlanResult<TData = unknown> {
 
 export class LayoutRuntime<TData = unknown> {
   private bounds: Rect
+  private constraints: LayoutConstraints
   private lastInteractionAt = new Map<string, number>()
   private lastVisibleAt = new Map<string, number>()
   private metrics: GridMetrics
@@ -52,8 +61,12 @@ export class LayoutRuntime<TData = unknown> {
   private nodes: LayoutNode<TData>[]
 
   constructor(options: LayoutRuntimeOptions<TData>) {
+    const nodes = [...(options.nodes ?? [])]
+
+    this.constraints = options.constraints ?? {}
     this.metrics = options.metrics
-    this.nodes = [...(options.nodes ?? [])]
+    assertLayoutNodes(nodes, this.constraints)
+    this.nodes = nodes
     this.nodeMap = createNodeMap(this.nodes)
     this.bounds = estimateLayoutBounds(this.nodes, this.metrics)
   }
@@ -64,6 +77,10 @@ export class LayoutRuntime<TData = unknown> {
 
   getMetrics(): GridMetrics {
     return { ...this.metrics }
+  }
+
+  getConstraints(): LayoutConstraints {
+    return { ...this.constraints }
   }
 
   getMaterializationMode(id: string): MaterializationMode | undefined {
@@ -83,7 +100,13 @@ export class LayoutRuntime<TData = unknown> {
   }
 
   moveNode(id: string, nextPlacement: { x: number; y: number }): boolean {
-    if (!this.nodeMap.has(id)) {
+    const node = this.nodeMap.get(id)
+
+    if (node == null) {
+      return false
+    }
+
+    if (validatePlacement(node, nextPlacement, this.constraints) != null) {
       return false
     }
 
@@ -173,7 +196,13 @@ export class LayoutRuntime<TData = unknown> {
   }
 
   resizeNode(id: string, nextSize: { w: number; h: number }): boolean {
-    if (!this.nodeMap.has(id)) {
+    const node = this.nodeMap.get(id)
+
+    if (node == null) {
+      return false
+    }
+
+    if (validateSize(node, nextSize, this.constraints) != null) {
       return false
     }
 
@@ -200,7 +229,10 @@ export class LayoutRuntime<TData = unknown> {
   }
 
   replaceNodes(nodes: readonly LayoutNode<TData>[]): void {
-    this.nodes = [...nodes]
+    const nextNodes = [...nodes]
+
+    assertLayoutNodes(nextNodes, this.constraints)
+    this.nodes = nextNodes
     this.lastInteractionAt.clear()
     this.lastVisibleAt.clear()
     this.modeById.clear()
@@ -221,6 +253,8 @@ export class LayoutRuntime<TData = unknown> {
   }
 
   upsertNode(node: LayoutNode<TData>): void {
+    assertLayoutNode(node, this.constraints)
+
     const index = this.nodes.findIndex((candidate) => candidate.id === node.id)
 
     if (index === -1) {

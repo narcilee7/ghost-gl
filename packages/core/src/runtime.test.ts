@@ -71,6 +71,7 @@ describe('LayoutRuntime', () => {
 
   it('supports deterministic move and resize updates', () => {
     const runtime = new LayoutRuntime({
+      constraints: { columns: 4 },
       metrics,
       nodes: [
         { id: 'a', x: 0, y: 0, w: 2, h: 2 },
@@ -94,6 +95,41 @@ describe('LayoutRuntime', () => {
       width: 226,
       height: 904,
     })
+  })
+
+  it('rejects illegal operations against configured constraints', () => {
+    const runtime = new LayoutRuntime({
+      constraints: { columns: 4 },
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 2, h: 2 }],
+    })
+
+    expect(runtime.getConstraints()).toEqual({ columns: 4 })
+    expect(runtime.moveNode('a', { x: -1, y: 0 })).toBe(false)
+    expect(runtime.moveNode('a', { x: 3, y: 0 })).toBe(false)
+    expect(runtime.resizeNode('a', { w: 5, h: 2 })).toBe(false)
+    expect(runtime.getNode('a')).toEqual({ id: 'a', x: 0, y: 0, w: 2, h: 2 })
+  })
+
+  it('throws when runtime state would become invalid', () => {
+    expect(
+      () =>
+        new LayoutRuntime({
+          constraints: { columns: 4 },
+          metrics,
+          nodes: [{ id: 'a', x: 3, y: 0, w: 2, h: 1 }],
+        })
+    ).toThrow('exceeds configured columns')
+
+    const runtime = new LayoutRuntime({
+      constraints: { columns: 4 },
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+    })
+
+    expect(() => runtime.upsertNode({ id: 'b', x: 4, y: 0, w: 1, h: 1 })).toThrow(
+      'exceeds configured columns'
+    )
   })
 
   it('produces materialization output with live and shell items', () => {

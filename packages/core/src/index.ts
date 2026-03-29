@@ -1,3 +1,15 @@
+export type {
+  LayoutConstraints,
+  LayoutConstraintViolation,
+  LayoutConstraintViolationCode,
+} from './constraints'
+export {
+  assertLayoutNode,
+  assertLayoutNodes,
+  validateNode,
+  validatePlacement,
+  validateSize,
+} from './constraints'
 export {
   estimateLayoutBounds,
   expandRect,
