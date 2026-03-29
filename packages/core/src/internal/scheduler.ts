@@ -1,4 +1,5 @@
 import { expandRect, intersectsRect } from '../geometry'
+import type { SpatialKernel } from '../spatial'
 import type { MaterializationMode, Rect } from '../types'
 
 export const schedulerReasons = ['visible', 'overscan', 'dragging', 'cooldown', 'parked'] as const
@@ -72,11 +73,23 @@ export interface PlanMaterializationInput {
   viewport: SchedulerViewport
 }
 
+export interface PlanMaterializationFromKernelInput<TData = unknown> {
+  activeIds?: ReadonlySet<string>
+  config?: Partial<SchedulerConfig>
+  controller?: SchedulerController
+  kernel: SpatialKernel<TData>
+  modeById: ReadonlyMap<string, MaterializationMode>
+  timestamp: number
+  viewport: SchedulerViewport
+  // Additional data for cooldown tracking - nodes that might not be in viewport but in cooldown
+  cooldownData?: ReadonlyMap<string, { lastInteractionAt?: number; lastVisibleAt?: number }>
+}
+
 export const defaultSchedulerConfig: SchedulerConfig = {
+  fastScrollVelocity: 1_200,
   overscanX: 200,
   overscanY: 200,
   shellCooldownMs: 180,
-  fastScrollVelocity: 1_200,
 }
 
 export function createSchedulerConfig(overrides: Partial<SchedulerConfig> = {}): SchedulerConfig {
@@ -89,10 +102,10 @@ export function createSchedulerConfig(overrides: Partial<SchedulerConfig> = {}):
 export function planMaterialization(input: PlanMaterializationInput): SchedulerPlan {
   const config = createSchedulerConfig(input.config)
   const viewport: Rect = {
+    height: input.viewport.height,
     left: input.viewport.left,
     top: input.viewport.top,
     width: input.viewport.width,
-    height: input.viewport.height,
   }
   const expandedViewport = expandRect(viewport, config.overscanX, config.overscanY)
   const context: SchedulerContext = {
@@ -112,6 +125,82 @@ export function planMaterialization(input: PlanMaterializationInput): SchedulerP
   }
 
   const decisions = input.nodes.map((node) => {
+    const override = input.controller?.resolveMode?.(node, context)
+    const decision =
+      override != null ? toDecision(node.id, override) : decideNodeMode(node, context)
+
+    summary[decision.mode] += 1
+
+    return decision
+  })
+
+  return {
+    context,
+    decisions,
+    summary,
+  }
+}
+
+/**
+ * Plan materialization using spatial kernel for O(log n) viewport queries.
+ * This is more efficient than the linear-scan version when dealing with large layouts.
+ */
+export function planMaterializationFromKernel<TData = unknown>(
+  input: PlanMaterializationFromKernelInput<TData>
+): SchedulerPlan {
+  const config = createSchedulerConfig(input.config)
+  const viewport: Rect = {
+    height: input.viewport.height,
+    left: input.viewport.left,
+    top: input.viewport.top,
+    width: input.viewport.width,
+  }
+  const expandedViewport = expandRect(viewport, config.overscanX, config.overscanY)
+  const context: SchedulerContext = {
+    config,
+    expandedViewport,
+    isFastScrolling:
+      Math.abs(input.viewport.velocityX ?? 0) >= config.fastScrollVelocity ||
+      Math.abs(input.viewport.velocityY ?? 0) >= config.fastScrollVelocity,
+    timestamp: input.timestamp,
+    viewport,
+  }
+
+  const summary: SchedulerSummary = {
+    ghost: 0,
+    live: 0,
+    shell: 0,
+  }
+
+  // Get all items for processing (not just viewport - need to handle cooldown)
+  const allItems = input.kernel.getAll()
+
+  const decisions: SchedulerDecision[] = allItems.map((item) => {
+    const rect: Rect = {
+      height: item.maxY - item.minY,
+      left: item.minX,
+      top: item.minY,
+      width: item.maxX - item.minX,
+    }
+
+    const cooldownData = input.cooldownData?.get(item.id)
+    const node: SchedulerNodeCandidate = {
+      id: item.id,
+      mode: input.modeById.get(item.id) ?? 'ghost',
+      rect,
+    }
+
+    const isActive = input.activeIds?.has(item.id)
+    if (isActive) {
+      node.isActive = isActive
+    }
+    if (cooldownData?.lastInteractionAt !== undefined) {
+      node.lastInteractionAt = cooldownData.lastInteractionAt
+    }
+    if (cooldownData?.lastVisibleAt !== undefined) {
+      node.lastVisibleAt = cooldownData.lastVisibleAt
+    }
+
     const override = input.controller?.resolveMode?.(node, context)
     const decision =
       override != null ? toDecision(node.id, override) : decideNodeMode(node, context)
