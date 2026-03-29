@@ -224,10 +224,16 @@ print_step "Running dry-run publish..."
 npm publish --dry-run
 
 echo ""
-read -p "Dry-run complete. Proceed with actual publish? (yes/no): " confirm_publish
+echo "📦 Dry-run shows what will be published above"
+echo ""
+read -p "Proceed with actual publish to npm? Type 'yes' to confirm: " confirm_publish
 
 if [ "$confirm_publish" != "yes" ]; then
     print_warning "Publish cancelled"
+    echo ""
+    echo "To verify the package contents manually:"
+    echo "  cd $PACKAGE_DIR && npm pack --dry-run"
+    echo ""
     # Revert version change
     git checkout package.json
     exit 0
