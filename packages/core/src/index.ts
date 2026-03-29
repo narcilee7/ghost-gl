@@ -47,6 +47,26 @@ export {
   createInteractionSession,
   previewInteraction,
 } from './interaction'
+export type {
+  PlanMaterializationInput,
+  SchedulerBudget,
+  SchedulerConfig,
+  SchedulerContext,
+  SchedulerDecision,
+  SchedulerNodeCandidate,
+  SchedulerPlan,
+  SchedulerProfile,
+  SchedulerReason,
+  SchedulerSummary,
+  SchedulerTrace,
+} from './internal/scheduler'
+export {
+  createSchedulerConfig,
+  defaultProfileConfigs,
+  defaultSchedulerBudget,
+  planMaterialization,
+  planMaterializationFromKernel,
+} from './internal/scheduler'
 export type { CompactDirection, CompactOptions, NodePlacement, NodeSize } from './layout'
 export { collides, compactLayout, findAutoPlacement, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
