@@ -52,7 +52,7 @@ export function recordLayoutTransaction<TData = unknown>(
 export function redoLayoutHistory<TData = unknown>(
   nodes: readonly LayoutNode<TData>[],
   history: LayoutHistoryState<TData>,
-  options: LayoutTransactionOptions = {}
+  options: LayoutTransactionOptions<TData> = {}
 ): LayoutHistoryNavigationResult<TData> {
   const entry = history.future.at(-1)
 
@@ -86,7 +86,7 @@ export function redoLayoutHistory<TData = unknown>(
 export function undoLayoutHistory<TData = unknown>(
   nodes: readonly LayoutNode<TData>[],
   history: LayoutHistoryState<TData>,
-  options: LayoutTransactionOptions = {}
+  options: LayoutTransactionOptions<TData> = {}
 ): LayoutHistoryNavigationResult<TData> {
   const entry = history.past.at(-1)
 

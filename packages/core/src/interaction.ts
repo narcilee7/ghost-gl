@@ -56,7 +56,7 @@ export function createInteractionSession<TData = unknown>(input: {
 export function previewInteraction<TData = unknown>(
   session: LayoutInteractionSession<TData>,
   operations: readonly LayoutOperation<TData>[],
-  options: LayoutTransactionOptions = {}
+  options: LayoutTransactionOptions<TData> = {}
 ): LayoutInteractionPreviewResult<TData> {
   if (session.status !== 'active') {
     return {

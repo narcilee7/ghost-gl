@@ -12,6 +12,12 @@ export interface NodeSize {
   h: number
 }
 
+export interface LayoutMutationContext<TData = unknown> {
+  itemById: Map<string, SpatialItem<TData>>
+  nodes: LayoutNode<TData>[]
+  tree: RBush<SpatialItem<TData>>
+}
+
 export function collides<TData = unknown>(
   a: Pick<LayoutNode<TData>, 'id' | 'x' | 'y' | 'w' | 'h'>,
   b: Pick<LayoutNode<TData>, 'id' | 'x' | 'y' | 'w' | 'h'>
@@ -28,7 +34,18 @@ export function moveNode<TData = unknown>(
   id: string,
   nextPlacement: NodePlacement
 ): LayoutNode<TData>[] {
-  return mutateNode(nodes, id, (node) => {
+  const context = createLayoutMutationContext(nodes)
+  moveNodeWithContext(context, id, nextPlacement)
+
+  return finalizeLayoutMutation(context)
+}
+
+export function moveNodeWithContext<TData = unknown>(
+  context: LayoutMutationContext<TData>,
+  id: string,
+  nextPlacement: NodePlacement
+): void {
+  mutateNode(context, id, (node) => {
     node.x = nextPlacement.x
     node.y = nextPlacement.y
   })
@@ -39,30 +56,56 @@ export function resizeNode<TData = unknown>(
   id: string,
   nextSize: NodeSize
 ): LayoutNode<TData>[] {
-  return mutateNode(nodes, id, (node) => {
+  const context = createLayoutMutationContext(nodes)
+  resizeNodeWithContext(context, id, nextSize)
+
+  return finalizeLayoutMutation(context)
+}
+
+export function resizeNodeWithContext<TData = unknown>(
+  context: LayoutMutationContext<TData>,
+  id: string,
+  nextSize: NodeSize
+): void {
+  mutateNode(context, id, (node) => {
     node.w = nextSize.w
     node.h = nextSize.h
   })
 }
 
-function mutateNode<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  id: string,
-  mutate: (node: LayoutNode<TData>) => void
-): LayoutNode<TData>[] {
+export function createLayoutMutationContext<TData = unknown>(
+  nodes: readonly LayoutNode<TData>[]
+): LayoutMutationContext<TData> {
   const nextNodes = nodes.map((node) => ({ ...node }))
   const { itemById, tree } = createSpatialIndex(nextNodes)
-  const targetItem = itemById.get(id)
+
+  return {
+    itemById,
+    nodes: nextNodes,
+    tree,
+  }
+}
+
+export function finalizeLayoutMutation<TData = unknown>(
+  context: LayoutMutationContext<TData>
+): LayoutNode<TData>[] {
+  return sortNodes(context.nodes)
+}
+
+function mutateNode<TData = unknown>(
+  context: LayoutMutationContext<TData>,
+  id: string,
+  mutate: (node: LayoutNode<TData>) => void
+): void {
+  const targetItem = context.itemById.get(id)
 
   if (targetItem == null) {
-    return sortNodes(nextNodes)
+    return
   }
 
   mutate(targetItem.node)
-  syncSpatialItem(tree, targetItem)
-  resolveNodeCollisions(tree, itemById, targetItem.id)
-
-  return sortNodes(nextNodes)
+  syncSpatialItem(context.tree, targetItem)
+  resolveNodeCollisions(context.tree, context.itemById, targetItem.id)
 }
 
 function resolveNodeCollisions<TData = unknown>(

@@ -1,12 +1,15 @@
 import {
   applyLayoutOperation,
+  createOperationMutationContext,
+  finalizeOperationMutationContext,
   type LayoutOperation,
   type LayoutOperationOptions,
   type LayoutOperationResult,
+  shouldReuseMutationContext,
 } from './operations'
 import type { LayoutNode } from './types'
 
-export interface LayoutTransactionOptions extends LayoutOperationOptions {}
+export interface LayoutTransactionOptions<TData = unknown> extends LayoutOperationOptions<TData> {}
 
 export interface LayoutTransactionResult<TData = unknown> {
   changed: boolean
@@ -21,9 +24,10 @@ export interface LayoutTransactionResult<TData = unknown> {
 export function applyLayoutTransaction<TData = unknown>(
   nodes: readonly LayoutNode<TData>[],
   operations: readonly LayoutOperation<TData>[],
-  options: LayoutTransactionOptions = {}
+  options: LayoutTransactionOptions<TData> = {}
 ): LayoutTransactionResult<TData> {
   let nextNodes = nodes
+  let mutationContext: LayoutOperationOptions<TData>['mutationContext']
   const inverseOperations: LayoutOperation<TData>[] = []
   const results: LayoutOperationResult<TData>[] = []
 
@@ -34,7 +38,23 @@ export function applyLayoutTransaction<TData = unknown>(
       continue
     }
 
-    const result = applyLayoutOperation(nextNodes, operation, options)
+    const previousNodes = nextNodes
+
+    if (shouldReuseMutationContext(operation)) {
+      mutationContext ??= createOperationMutationContext(previousNodes)
+    } else {
+      mutationContext = undefined
+    }
+
+    const inverseOperation = createInverseOperation(previousNodes, operation)
+
+    const operationOptions: LayoutOperationOptions<TData> = { ...options }
+
+    if (mutationContext !== undefined) {
+      operationOptions.mutationContext = mutationContext
+    }
+
+    const result = applyLayoutOperation(previousNodes, operation, operationOptions)
     results.push(result)
 
     if (result.status === 'rejected') {
@@ -49,13 +69,12 @@ export function applyLayoutTransaction<TData = unknown>(
       }
     }
 
-    const inverseOperation = createInverseOperation(nextNodes, operation)
-
     if (inverseOperation != null) {
       inverseOperations.unshift(inverseOperation)
     }
 
-    nextNodes = result.nextNodes
+    nextNodes =
+      mutationContext != null ? finalizeOperationMutationContext(mutationContext) : result.nextNodes
   }
 
   return {
