@@ -1,3 +1,5 @@
+import RBush from 'rbush'
+
 import type { LayoutNode } from './types'
 
 export interface NodePlacement {
@@ -49,46 +51,58 @@ function mutateNode<TData = unknown>(
   mutate: (node: LayoutNode<TData>) => void
 ): LayoutNode<TData>[] {
   const nextNodes = nodes.map((node) => ({ ...node }))
-  const nodeById = new Map(nextNodes.map((node) => [node.id, node]))
-  const target = nodeById.get(id)
+  const { itemById, tree } = createSpatialIndex(nextNodes)
+  const targetItem = itemById.get(id)
 
-  if (target == null) {
+  if (targetItem == null) {
     return sortNodes(nextNodes)
   }
 
-  mutate(target)
-  resolveNodeCollisions(nextNodes, target.id)
+  mutate(targetItem.node)
+  syncSpatialItem(tree, targetItem)
+  resolveNodeCollisions(tree, itemById, targetItem.id)
 
   return sortNodes(nextNodes)
 }
 
-function resolveNodeCollisions<TData = unknown>(nodes: LayoutNode<TData>[], rootId: string): void {
+function resolveNodeCollisions<TData = unknown>(
+  tree: RBush<SpatialItem<TData>>,
+  itemById: Map<string, SpatialItem<TData>>,
+  rootId: string
+): void {
   const queue = [rootId]
+  let cursor = 0
 
-  while (queue.length > 0) {
-    const currentId = queue.shift()
+  while (cursor < queue.length) {
+    const currentId = queue[cursor]
+    cursor += 1
 
     if (currentId == null) {
       continue
     }
 
-    const current = nodes.find((node) => node.id === currentId)
+    const current = itemById.get(currentId)
 
     if (current == null) {
       continue
     }
 
     while (true) {
-      const colliders = sortNodes(nodes.filter((node) => collides(current, node)))
+      const colliders = sortSpatialItems(
+        tree
+          .search(current)
+          .filter((item) => item.id !== current.id && collides(current.node, item.node))
+      )
 
       if (colliders.length === 0) {
         break
       }
 
-      const staticBlocker = colliders.find((node) => node.static)
+      const staticBlocker = colliders.find((item) => item.node.static)
 
       if (staticBlocker != null) {
-        current.y = staticBlocker.y + staticBlocker.h
+        current.node.y = staticBlocker.node.y + staticBlocker.node.h
+        syncSpatialItem(tree, current)
         continue
       }
 
@@ -98,14 +112,51 @@ function resolveNodeCollisions<TData = unknown>(nodes: LayoutNode<TData>[], root
         break
       }
 
-      displaced.y = current.y + current.h
+      displaced.node.y = current.node.y + current.node.h
+      syncSpatialItem(tree, displaced)
       queue.push(displaced.id)
     }
   }
 }
 
+interface SpatialItem<TData = unknown> {
+  id: string
+  maxX: number
+  maxY: number
+  minX: number
+  minY: number
+  node: LayoutNode<TData>
+}
+
+function createSpatialIndex<TData = unknown>(
+  nodes: readonly LayoutNode<TData>[]
+): {
+  itemById: Map<string, SpatialItem<TData>>
+  tree: RBush<SpatialItem<TData>>
+} {
+  const itemById = new Map<string, SpatialItem<TData>>()
+  const items = nodes.map((node) => {
+    const item = toSpatialItem(node)
+    itemById.set(item.id, item)
+    return item
+  })
+  const tree = new RBush<SpatialItem<TData>>()
+  tree.load(items)
+
+  return {
+    itemById,
+    tree,
+  }
+}
+
 function sortNodes<TData = unknown>(nodes: readonly LayoutNode<TData>[]): LayoutNode<TData>[] {
   return [...nodes].sort(compareNodes)
+}
+
+function sortSpatialItems<TData = unknown>(
+  items: readonly SpatialItem<TData>[]
+): SpatialItem<TData>[] {
+  return [...items].sort((a, b) => compareNodes(a.node, b.node))
 }
 
 function compareNodes<TData = unknown>(a: LayoutNode<TData>, b: LayoutNode<TData>): number {
@@ -118,4 +169,27 @@ function compareNodes<TData = unknown>(a: LayoutNode<TData>, b: LayoutNode<TData
   }
 
   return a.id.localeCompare(b.id)
+}
+
+function syncSpatialItem<TData = unknown>(
+  tree: RBush<SpatialItem<TData>>,
+  item: SpatialItem<TData>
+): void {
+  tree.remove(item)
+  item.minX = item.node.x
+  item.minY = item.node.y
+  item.maxX = item.node.x + item.node.w
+  item.maxY = item.node.y + item.node.h
+  tree.insert(item)
+}
+
+function toSpatialItem<TData = unknown>(node: LayoutNode<TData>): SpatialItem<TData> {
+  return {
+    id: node.id,
+    maxX: node.x + node.w,
+    maxY: node.y + node.h,
+    minX: node.x,
+    minY: node.y,
+    node,
+  }
 }
