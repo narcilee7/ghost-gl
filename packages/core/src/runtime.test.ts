@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { LayoutRuntime } from './index'
+import { applyLayoutOperation, LayoutRuntime } from './index'
 
 describe('LayoutRuntime', () => {
   const metrics = {
@@ -47,6 +47,42 @@ describe('LayoutRuntime', () => {
 
     runtime.replaceNodes([{ id: 'c', x: 1, y: 1, w: 1, h: 1 }])
     expect(runtime.getNodes().map((node) => node.id)).toEqual(['c'])
+  })
+
+  it('dispatches unified layout operations and keeps runtime state in sync', () => {
+    const runtime = new LayoutRuntime({
+      constraints: { columns: 4 },
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+    })
+
+    const moveResult = runtime.dispatch({
+      id: 'a',
+      placement: { x: 1, y: 0 },
+      type: 'move',
+    })
+
+    expect(moveResult).toMatchObject({
+      changed: true,
+      status: 'applied',
+    })
+    expect(runtime.getNode('a')).toMatchObject({ x: 1, y: 0 })
+
+    runtime.planMaterialization({
+      height: 100,
+      left: 0,
+      top: 0,
+      width: 140,
+    })
+    expect(runtime.getMaterializationMode('a')).toBe('live')
+
+    const replaceResult = runtime.dispatch({
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+      type: 'replace',
+    })
+
+    expect(replaceResult.status).toBe('applied')
+    expect(runtime.getMaterializationMode('a')).toBeUndefined()
   })
 
   it('queries visible rects using current metrics', () => {
@@ -109,6 +145,17 @@ describe('LayoutRuntime', () => {
     expect(runtime.moveNode('a', { x: 3, y: 0 })).toBe(false)
     expect(runtime.resizeNode('a', { w: 5, h: 2 })).toBe(false)
     expect(runtime.getNode('a')).toEqual({ id: 'a', x: 0, y: 0, w: 2, h: 2 })
+
+    expect(
+      runtime.dispatch({
+        id: 'missing',
+        type: 'remove',
+      })
+    ).toMatchObject({
+      changed: false,
+      rejectionReason: 'node_not_found',
+      status: 'rejected',
+    })
   })
 
   it('throws when runtime state would become invalid', () => {
@@ -208,5 +255,16 @@ describe('LayoutRuntime', () => {
     expect(plan.materialized.map((item) => [item.id, item.mode, item.reason])).toEqual([
       ['a', 'live', 'dragging'],
     ])
+  })
+
+  it('re-exports the pure operation model from the public core entry', () => {
+    const result = applyLayoutOperation([{ id: 'a', x: 0, y: 0, w: 1, h: 1 }], {
+      id: 'a',
+      placement: { x: 0, y: 1 },
+      type: 'move',
+    })
+
+    expect(result.status).toBe('applied')
+    expect(result.nextNodes).toEqual([{ id: 'a', x: 0, y: 1, w: 1, h: 1 }])
   })
 })

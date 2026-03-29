@@ -6,6 +6,7 @@ export type {
 export {
   assertLayoutNode,
   assertLayoutNodes,
+  createLayoutViolationError,
   validateNode,
   validatePlacement,
   validateSize,
@@ -19,6 +20,14 @@ export {
 export type { NodePlacement, NodeSize } from './layout'
 export { collides, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
+export type {
+  LayoutOperation,
+  LayoutOperationOptions,
+  LayoutOperationRejectionReason,
+  LayoutOperationResult,
+  LayoutOperationStatus,
+} from './operations'
+export { applyLayoutOperation } from './operations'
 export type {
   LayoutRuntimeOptions,
   MaterializationPlanInput,

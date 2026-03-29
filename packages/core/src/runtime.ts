@@ -1,9 +1,7 @@
 import {
-  assertLayoutNode,
   assertLayoutNodes,
+  createLayoutViolationError,
   type LayoutConstraints,
-  validatePlacement,
-  validateSize,
 } from './constraints'
 import { estimateLayoutBounds, projectNodeToRect } from './geometry'
 import {
@@ -12,8 +10,12 @@ import {
   type SchedulerNodeCandidate,
   type SchedulerViewport,
 } from './internal/scheduler'
-import { moveNode as moveLayoutNode, resizeNode as resizeLayoutNode } from './layout'
 import { createNodeMap } from './node-map'
+import {
+  applyLayoutOperation,
+  type LayoutOperation,
+  type LayoutOperationResult,
+} from './operations'
 import type {
   GridMetrics,
   LayoutNode,
@@ -99,21 +101,30 @@ export class LayoutRuntime<TData = unknown> {
     return this.nodes
   }
 
-  moveNode(id: string, nextPlacement: { x: number; y: number }): boolean {
-    const node = this.nodeMap.get(id)
+  dispatch(operation: LayoutOperation<TData>): LayoutOperationResult<TData> {
+    const result = applyLayoutOperation(this.nodes, operation, {
+      constraints: this.constraints,
+    })
 
-    if (node == null) {
-      return false
+    if (result.status === 'rejected') {
+      return result
     }
 
-    if (validatePlacement(node, nextPlacement, this.constraints) != null) {
-      return false
-    }
-
-    this.nodes = moveLayoutNode(this.nodes, id, nextPlacement)
+    this.nodes = [...result.nextNodes]
+    this.syncOperationCaches(operation)
     this.rebuildState()
 
-    return true
+    return result
+  }
+
+  moveNode(id: string, nextPlacement: { x: number; y: number }): boolean {
+    return (
+      this.dispatch({
+        id,
+        placement: nextPlacement,
+        type: 'move',
+      }).status === 'applied'
+    )
   }
 
   planMaterialization(input: MaterializationPlanInput): MaterializationPlanResult<TData> {
@@ -196,47 +207,25 @@ export class LayoutRuntime<TData = unknown> {
   }
 
   resizeNode(id: string, nextSize: { w: number; h: number }): boolean {
-    const node = this.nodeMap.get(id)
-
-    if (node == null) {
-      return false
-    }
-
-    if (validateSize(node, nextSize, this.constraints) != null) {
-      return false
-    }
-
-    this.nodes = resizeLayoutNode(this.nodes, id, nextSize)
-    this.rebuildState()
-
-    return true
+    return (
+      this.dispatch({
+        id,
+        size: nextSize,
+        type: 'resize',
+      }).status === 'applied'
+    )
   }
 
   removeNode(id: string): boolean {
-    const index = this.nodes.findIndex((node) => node.id === id)
-
-    if (index === -1) {
-      return false
-    }
-
-    this.nodes.splice(index, 1)
-    this.lastInteractionAt.delete(id)
-    this.lastVisibleAt.delete(id)
-    this.modeById.delete(id)
-    this.rebuildState()
-
-    return true
+    return this.dispatch({ id, type: 'remove' }).status === 'applied'
   }
 
   replaceNodes(nodes: readonly LayoutNode<TData>[]): void {
-    const nextNodes = [...nodes]
+    const result = this.dispatch({ nodes, type: 'replace' })
 
-    assertLayoutNodes(nextNodes, this.constraints)
-    this.nodes = nextNodes
-    this.lastInteractionAt.clear()
-    this.lastVisibleAt.clear()
-    this.modeById.clear()
-    this.rebuildState()
+    if (result.status === 'rejected') {
+      throwRejectedOperation(result, this.constraints)
+    }
   }
 
   setMetrics(metrics: GridMetrics): void {
@@ -253,22 +242,35 @@ export class LayoutRuntime<TData = unknown> {
   }
 
   upsertNode(node: LayoutNode<TData>): void {
-    assertLayoutNode(node, this.constraints)
+    const result = this.dispatch({ node, type: 'upsert' })
 
-    const index = this.nodes.findIndex((candidate) => candidate.id === node.id)
-
-    if (index === -1) {
-      this.nodes.push(node)
-    } else {
-      this.nodes[index] = node
+    if (result.status === 'rejected') {
+      throwRejectedOperation(result, this.constraints)
     }
-
-    this.rebuildState()
   }
 
   private rebuildState(): void {
     this.nodeMap = createNodeMap(this.nodes)
     this.bounds = estimateLayoutBounds(this.nodes, this.metrics)
+  }
+
+  private syncOperationCaches(operation: LayoutOperation<TData>): void {
+    switch (operation.type) {
+      case 'move':
+      case 'resize':
+      case 'upsert':
+        return
+      case 'remove':
+        this.lastInteractionAt.delete(operation.id)
+        this.lastVisibleAt.delete(operation.id)
+        this.modeById.delete(operation.id)
+        return
+      case 'replace':
+        this.lastInteractionAt.clear()
+        this.lastVisibleAt.clear()
+        this.modeById.clear()
+        return
+    }
   }
 }
 
@@ -335,4 +337,15 @@ function toSchedulerViewport(input: MaterializationPlanInput): SchedulerViewport
   }
 
   return viewport
+}
+
+function throwRejectedOperation<TData = unknown>(
+  result: LayoutOperationResult<TData>,
+  constraints: LayoutConstraints
+): never {
+  if (result.violation != null) {
+    throw createLayoutViolationError(result.violation, constraints)
+  }
+
+  throw new Error(`Layout operation "${result.operation.type}" was rejected.`)
 }

@@ -33,7 +33,7 @@ export function assertLayoutNode<TData = unknown>(
   const violation = validateNode(node, constraints)
 
   if (violation != null) {
-    throw new Error(formatViolation(violation, constraints))
+    throw createLayoutViolationError(violation, constraints)
   }
 }
 
@@ -98,6 +98,13 @@ export function validateSize<TData = unknown>(
     },
     constraints
   )
+}
+
+export function createLayoutViolationError(
+  violation: LayoutConstraintViolation,
+  constraints?: LayoutConstraints
+): Error {
+  return new Error(formatViolation(violation, constraints))
 }
 
 function formatViolation(
