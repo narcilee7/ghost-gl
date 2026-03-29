@@ -5,6 +5,7 @@ import {
   type SchedulerNodeCandidate,
   type SchedulerViewport,
 } from './internal/scheduler'
+import { moveNode as moveLayoutNode, resizeNode as resizeLayoutNode } from './layout'
 import { createNodeMap } from './node-map'
 import type {
   GridMetrics,
@@ -79,6 +80,17 @@ export class LayoutRuntime<TData = unknown> {
 
   getNodes(): readonly LayoutNode<TData>[] {
     return this.nodes
+  }
+
+  moveNode(id: string, nextPlacement: { x: number; y: number }): boolean {
+    if (!this.nodeMap.has(id)) {
+      return false
+    }
+
+    this.nodes = moveLayoutNode(this.nodes, id, nextPlacement)
+    this.rebuildState()
+
+    return true
   }
 
   planMaterialization(input: MaterializationPlanInput): MaterializationPlanResult<TData> {
@@ -158,6 +170,17 @@ export class LayoutRuntime<TData = unknown> {
     }
   ): LayoutRect<TData>[] {
     return queryViewport(this.nodes, viewport, this.metrics, options)
+  }
+
+  resizeNode(id: string, nextSize: { w: number; h: number }): boolean {
+    if (!this.nodeMap.has(id)) {
+      return false
+    }
+
+    this.nodes = resizeLayoutNode(this.nodes, id, nextSize)
+    this.rebuildState()
+
+    return true
   }
 
   removeNode(id: string): boolean {

@@ -4,6 +4,8 @@ export {
   intersectsRect,
   projectNodeToRect,
 } from './geometry'
+export type { NodePlacement, NodeSize } from './layout'
+export { collides, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
 export type {
   LayoutRuntimeOptions,

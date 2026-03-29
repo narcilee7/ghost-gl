@@ -69,6 +69,33 @@ describe('LayoutRuntime', () => {
     expect(rects.map((rect) => rect.id)).toEqual(['a', 'b'])
   })
 
+  it('supports deterministic move and resize updates', () => {
+    const runtime = new LayoutRuntime({
+      metrics,
+      nodes: [
+        { id: 'a', x: 0, y: 0, w: 2, h: 2 },
+        { id: 'b', x: 0, y: 2, w: 2, h: 2 },
+        { id: 'c', x: 0, y: 4, w: 2, h: 2, static: true },
+      ],
+    })
+
+    expect(runtime.moveNode('a', { x: 0, y: 1 })).toBe(true)
+    expect(runtime.getNodes()).toEqual([
+      { id: 'a', x: 0, y: 1, w: 2, h: 2 },
+      { id: 'c', x: 0, y: 4, w: 2, h: 2, static: true },
+      { id: 'b', x: 0, y: 6, w: 2, h: 2 },
+    ])
+
+    expect(runtime.resizeNode('b', { w: 2, h: 3 })).toBe(true)
+    expect(runtime.getNode('b')).toMatchObject({ h: 3, y: 6 })
+    expect(runtime.getBounds()).toEqual({
+      left: 0,
+      top: 0,
+      width: 226,
+      height: 904,
+    })
+  })
+
   it('produces materialization output with live and shell items', () => {
     const runtime = new LayoutRuntime({
       metrics,
