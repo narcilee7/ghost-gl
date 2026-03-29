@@ -28,6 +28,19 @@ export {
   redoLayoutHistory,
   undoLayoutHistory,
 } from './history'
+export type {
+  LayoutInteractionCommitResult,
+  LayoutInteractionKind,
+  LayoutInteractionPreviewResult,
+  LayoutInteractionSession,
+  LayoutInteractionStatus,
+} from './interaction'
+export {
+  cancelInteraction,
+  commitInteraction,
+  createInteractionSession,
+  previewInteraction,
+} from './interaction'
 export type { NodePlacement, NodeSize } from './layout'
 export { collides, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
