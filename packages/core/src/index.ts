@@ -21,6 +21,7 @@ export {
   expandRect,
   intersectsRect,
   projectNodeToRect,
+  unprojectRectToGrid,
 } from './geometry'
 export type {
   LayoutHistoryEntry,
@@ -63,6 +64,8 @@ export type {
   MaterializationPlanResult,
 } from './runtime'
 export { LayoutRuntime } from './runtime'
+export type { CollisionQuery, SpatialItem, SpatialQuery, ViewportSpatialQuery } from './spatial'
+export { SpatialKernel } from './spatial'
 export type {
   LayoutTransactionOptions,
   LayoutTransactionResult,
@@ -79,7 +82,7 @@ export type {
 } from './types'
 export { materializationModes } from './types'
 export type { ViewportQueryOptions } from './viewport'
-export { queryViewport } from './viewport'
+export { queryViewport, queryViewportWithKernel } from './viewport'
 
 import type { MaterializationMode } from './types'
 import { materializationModes } from './types'

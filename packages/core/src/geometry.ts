@@ -41,6 +41,37 @@ export function projectNodeToRect<TData = unknown>(
   }
 }
 
+/**
+ * Reverse project pixel rect to grid coordinates.
+ * This is an approximation - it finds the grid cell that contains the point.
+ */
+export function unprojectRectToGrid(
+  rect: Rect,
+  metrics: GridMetrics
+): { x: number; y: number; w: number; h: number } {
+  const gapX = metrics.gapX ?? 0
+  const gapY = metrics.gapY ?? 0
+  const paddingLeft = metrics.paddingLeft ?? 0
+  const paddingTop = metrics.paddingTop ?? 0
+
+  // Calculate grid coordinates
+  const x = Math.floor((rect.left - paddingLeft) / (metrics.columnWidth + gapX))
+  const y = Math.floor((rect.top - paddingTop) / (metrics.rowHeight + gapY))
+
+  // Calculate grid dimensions (approximate)
+  const right = rect.left + rect.width
+  const bottom = rect.top + rect.height
+  const maxX = Math.ceil((right - paddingLeft) / (metrics.columnWidth + gapX))
+  const maxY = Math.ceil((bottom - paddingTop) / (metrics.rowHeight + gapY))
+
+  return {
+    h: Math.max(1, maxY - y),
+    w: Math.max(1, maxX - x),
+    x: Math.max(0, x),
+    y: Math.max(0, y),
+  }
+}
+
 export function estimateLayoutBounds<TData = unknown>(
   nodes: readonly LayoutNode<TData>[],
   metrics: GridMetrics
@@ -56,9 +87,9 @@ export function estimateLayoutBounds<TData = unknown>(
   }
 
   return {
+    height: maxBottom,
     left: 0,
     top: 0,
     width: maxRight,
-    height: maxBottom,
   }
 }
