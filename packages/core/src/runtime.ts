@@ -3,7 +3,13 @@ import {
   createLayoutViolationError,
   type LayoutConstraints,
 } from './constraints'
-import { estimateLayoutBounds, projectNodeToRect } from './geometry'
+import { estimateLayoutBounds } from './geometry'
+import type { LayoutInteractionSession } from './interaction'
+import {
+  collectInteractionActiveIds,
+  resolvePlanningNodes,
+  resolvePlanningRects,
+} from './internal/interaction-bridge'
 import {
   type PlanMaterializationInput,
   planMaterialization as planInternalMaterialization,
@@ -33,8 +39,9 @@ export interface LayoutRuntimeOptions<TData = unknown> {
   nodes?: readonly LayoutNode<TData>[]
 }
 
-export interface MaterializationPlanInput extends Rect {
+export interface MaterializationPlanInput<TData = unknown> extends Rect {
   activeIds?: readonly string[]
+  interactionSession?: LayoutInteractionSession<TData>
   overscanX?: number
   overscanY?: number
   timestamp?: number
@@ -148,12 +155,19 @@ export class LayoutRuntime<TData = unknown> {
     )
   }
 
-  planMaterialization(input: MaterializationPlanInput): MaterializationPlanResult<TData> {
+  planMaterialization(input: MaterializationPlanInput<TData>): MaterializationPlanResult<TData> {
     const timestamp = input.timestamp ?? Date.now()
+    const planningNodes = resolvePlanningNodes(this.nodes, input.interactionSession)
     const activeIds = new Set(input.activeIds ?? [])
-    const rects = this.nodes.map((node) => projectNodeToRect(node, this.metrics))
+    const interactionActiveIds = collectInteractionActiveIds(input.interactionSession)
+    const rects = resolvePlanningRects(this.nodes, this.metrics, input.interactionSession)
+
+    for (const id of interactionActiveIds) {
+      activeIds.add(id)
+    }
+
     const visible = queryViewport(
-      this.nodes,
+      planningNodes,
       {
         left: input.left,
         top: input.top,

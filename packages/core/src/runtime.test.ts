@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyLayoutOperation, LayoutRuntime } from './index'
+import {
+  applyLayoutOperation,
+  createInteractionSession,
+  LayoutRuntime,
+  previewInteraction,
+} from './index'
 
 describe('LayoutRuntime', () => {
   const metrics = {
@@ -286,6 +291,38 @@ describe('LayoutRuntime', () => {
     expect(plan.materialized.map((item) => [item.id, item.mode, item.reason])).toEqual([
       ['a', 'live', 'dragging'],
     ])
+  })
+
+  it('plans materialization against interaction previews without mutating runtime state', () => {
+    const runtime = new LayoutRuntime({
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 10, w: 1, h: 1 }],
+    })
+
+    const interaction = previewInteraction(
+      createInteractionSession({
+        id: 'drag-a',
+        kind: 'drag',
+        nodes: runtime.getNodes(),
+        targetId: 'a',
+      }),
+      [{ id: 'a', placement: { x: 0, y: 0 }, type: 'move' }]
+    )
+
+    const plan = runtime.planMaterialization({
+      height: 100,
+      interactionSession: interaction.session,
+      left: 0,
+      top: 0,
+      width: 140,
+      timestamp: 1_000,
+    })
+
+    expect(plan.visible.map((rect) => rect.id)).toEqual(['a'])
+    expect(plan.materialized.map((item) => [item.id, item.mode, item.reason])).toEqual([
+      ['a', 'live', 'dragging'],
+    ])
+    expect(runtime.getNode('a')).toEqual({ id: 'a', x: 0, y: 10, w: 1, h: 1 })
   })
 
   it('re-exports the pure operation model from the public core entry', () => {
