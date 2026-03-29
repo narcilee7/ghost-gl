@@ -70,6 +70,12 @@ if ! command -v pnpm &> /dev/null; then
     exit 1
 fi
 
+# Install semver if not present
+if ! command -v semver &> /dev/null; then
+    print_step "Installing semver..."
+    npm install -g semver
+fi
+
 # Available packages
 PACKAGES=("core" "react")
 PACKAGE_DIRS=("packages/core" "packages/react")
