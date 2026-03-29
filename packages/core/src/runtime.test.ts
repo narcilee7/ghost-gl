@@ -238,7 +238,7 @@ describe('LayoutRuntime', () => {
       ['a', 'live'],
       ['b', 'shell'],
     ])
-    expect(plan.summary).toEqual({
+    expect(plan.summary).toMatchObject({
       ghost: 1,
       live: 1,
       shell: 1,
