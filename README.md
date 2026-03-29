@@ -5,19 +5,18 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ghost-gl/ghost-gl/blob/main/LICENSE">
+  <a href="https://github.com/narcilee7/ghost-gl/blob/main/LICENSE">
     <img src="https://img.shields.io/npm/l/ghost-gl-core" alt="License" />
   </a>
   <a href="https://www.npmjs.com/package/ghost-gl-core">
     <img src="https://img.shields.io/npm/v/ghost-gl-core" alt="npm version" />
   </a>
-  <a href="https://github.com/ghost-gl/ghost-gl/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/ghost-gl/ghost-gl/ci.yml" alt="CI" />
-  </a>
-  <a href="https://codecov.io/gh/ghost-gl/ghost-gl">
-    <img src="https://img.shields.io/codecov/c/github/ghost-gl/ghost-gl" alt="Coverage" />
+  <a href="https://github.com/narcilee7/ghost-gl/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/narcilee7/ghost-gl/ci.yml" alt="CI" />
   </a>
 </p>
+
+> **⚠️ Project Status**: This is an active development project. The core engine is ready for use, but React/Vue bindings are still in development. See [Roadmap](#roadmap) for details.
 
 ---
 
@@ -127,7 +126,9 @@ unsubscribe()
 runtime.dispose()
 ```
 
-### React Integration (Coming Soon)
+### React Integration (In Development)
+
+> **🚧 Mock API**: The React binding below shows the target API design. The actual implementation is in progress. Track progress in the [Roadmap](#roadmap).
 
 ```tsx
 import { GhostGrid } from 'ghost-gl-react'
@@ -329,7 +330,7 @@ const nearest = kernel.queryKNearest(4, 2, 3)
 
 ```bash
 # Clone repository
-git clone https://github.com/ghost-gl/ghost-gl.git
+git clone https://github.com/narcilee7/ghost-gl.git
 cd ghost-gl
 
 # Install dependencies
@@ -392,7 +393,7 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 ## License
 
-MIT © [ghost-gl contributors](https://github.com/ghost-gl/ghost-gl/graphs/contributors)
+MIT © [ghost-gl contributors](https://github.com/narcilee7/ghost-gl/graphs/contributors)
 
 ---
 

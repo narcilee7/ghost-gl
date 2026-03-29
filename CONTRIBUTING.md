@@ -279,8 +279,8 @@ pnpm release
 
 ## Questions?
 
-- Open a [Discussion](https://github.com/ghost-gl/ghost-gl/discussions) for questions
-- Open an [Issue](https://github.com/ghost-gl/ghost-gl/issues) for bugs
+- Open a [Discussion](https://github.com/narcilee7/ghost-gl/discussions) for questions
+- Open an [Issue](https://github.com/narcilee7/ghost-gl/issues) for bugs
 - Join our Discord (coming soon)
 
 Thank you for contributing! 🎉
