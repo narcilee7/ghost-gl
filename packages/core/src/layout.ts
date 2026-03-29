@@ -2,6 +2,13 @@ import RBush from 'rbush'
 
 import type { LayoutNode } from './types'
 
+export type CompactDirection = 'up' | 'down'
+
+export interface CompactOptions {
+  direction?: CompactDirection
+  maxColumns?: number
+}
+
 export interface NodePlacement {
   x: number
   y: number
@@ -90,6 +97,112 @@ export function finalizeLayoutMutation<TData = unknown>(
   context: LayoutMutationContext<TData>
 ): LayoutNode<TData>[] {
   return sortNodes(context.nodes)
+}
+
+/**
+ * Compact the layout by moving nodes to fill empty spaces.
+ *
+ * Algorithm:
+ * 1. Group nodes by column (x position)
+ * 2. For each column, sort nodes by y position
+ * 3. For each non-static node, move it up as far as possible
+ * 4. Respect static nodes as barriers
+ *
+ * @param nodes - Current layout nodes
+ * @param options - Compact options (direction, maxColumns)
+ * @returns Compacted layout nodes
+ */
+export function compactLayout<TData = unknown>(
+  nodes: readonly LayoutNode<TData>[],
+  options: CompactOptions = {}
+): LayoutNode<TData>[] {
+  const direction = options.direction ?? 'up'
+
+  if (direction === 'down') {
+    // Downward compact is essentially what resolveNodeCollisions already does
+    return [...nodes]
+  }
+
+  // Create context for efficient spatial queries
+  const context = createLayoutMutationContext(nodes)
+
+  // Get all column positions
+  const columnXs = new Set<number>()
+  for (const node of context.nodes) {
+    columnXs.add(node.x)
+    // Also add positions for multi-column nodes
+    for (let i = 1; i < node.w; i++) {
+      columnXs.add(node.x + i)
+    }
+  }
+
+  // Process each column
+  for (const colX of columnXs) {
+    compactColumn(context, colX)
+  }
+
+  return finalizeLayoutMutation(context)
+}
+
+/**
+ * Compact a single column by moving nodes upward.
+ */
+function compactColumn<TData = unknown>(context: LayoutMutationContext<TData>, colX: number): void {
+  // Get all nodes that overlap with this column
+  const columnNodes = context.nodes
+    .filter((node) => node.x <= colX && node.x + node.w > colX)
+    .sort((a, b) => a.y - b.y)
+
+  // Track the bottom of the last placed node (or static barrier)
+  let lastBottom = 0
+
+  for (const node of columnNodes) {
+    if (node.static) {
+      // Static nodes act as barriers
+      lastBottom = Math.max(lastBottom, node.y + node.h)
+      continue
+    }
+
+    // Find the item in context
+    const item = context.itemById.get(node.id)
+    if (item == null) continue
+
+    // Check if we can move this node up
+    const targetY = lastBottom
+    if (node.y > targetY) {
+      // Check for collisions in the new position
+      const collisions = findCollisionsAt(context, node, targetY)
+
+      if (collisions.length === 0) {
+        // Safe to move up
+        node.y = targetY
+        syncSpatialItem(context.tree, item)
+      } else {
+        // There's a collision, place below the collision
+        const maxBottom = Math.max(...collisions.map((c) => c.y + c.h))
+        node.y = maxBottom
+        syncSpatialItem(context.tree, item)
+      }
+    }
+
+    lastBottom = Math.max(lastBottom, node.y + node.h)
+  }
+}
+
+/**
+ * Find nodes that would collide if 'node' were moved to targetY.
+ */
+function findCollisionsAt<TData = unknown>(
+  context: LayoutMutationContext<TData>,
+  node: LayoutNode<TData>,
+  targetY: number
+): LayoutNode<TData>[] {
+  const tempNode = { ...node, y: targetY }
+
+  return context.nodes.filter((other) => {
+    if (other.id === node.id) return false
+    return collides(tempNode, other)
+  })
 }
 
 function mutateNode<TData = unknown>(

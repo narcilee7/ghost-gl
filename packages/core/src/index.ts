@@ -47,8 +47,8 @@ export {
   createInteractionSession,
   previewInteraction,
 } from './interaction'
-export type { NodePlacement, NodeSize } from './layout'
-export { collides, moveNode, resizeNode } from './layout'
+export type { CompactDirection, CompactOptions, NodePlacement, NodeSize } from './layout'
+export { collides, compactLayout, moveNode, resizeNode } from './layout'
 export { createNodeMap } from './node-map'
 export type {
   LayoutOperation,
