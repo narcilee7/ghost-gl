@@ -83,4 +83,43 @@ describe('RuntimeController', () => {
     expect(controller.redo()).toBe(true)
     expect(controller.getNodes()).toEqual([{ id: 'a', x: 1, y: 0, w: 1, h: 1 }])
   })
+
+  it('emits subscription events for interaction and committed transactions', () => {
+    const controller = new RuntimeController({
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+    })
+    const events: string[] = []
+
+    const offState = controller.on('state', () => {
+      events.push('state')
+    })
+    const offInteraction = controller.on('interaction', (session) => {
+      events.push(session?.status ?? 'interaction:none')
+    })
+    const offHistory = controller.on('history', (history) => {
+      events.push(`history:${history.past.length}`)
+    })
+    const offTransaction = controller.on('transaction', (transaction) => {
+      events.push(`transaction:${transaction.operations.length}`)
+    })
+
+    controller.beginInteraction({
+      id: 'drag-a',
+      kind: 'drag',
+      targetId: 'a',
+    })
+    controller.previewInteraction([{ id: 'a', placement: { x: 1, y: 0 }, type: 'move' }])
+    controller.commitInteraction()
+
+    offState()
+    offInteraction()
+    offHistory()
+    offTransaction()
+
+    expect(events).toContain('active')
+    expect(events).toContain('committed')
+    expect(events).toContain('transaction:1')
+    expect(events).toContain('history:1')
+  })
 })

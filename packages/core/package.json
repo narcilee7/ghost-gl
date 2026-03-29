@@ -29,5 +29,8 @@
     "lint:fix": "biome check package.json src tsconfig.json --write",
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "nanoevents": "^9.1.0"
   }
 }

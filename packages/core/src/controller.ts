@@ -1,3 +1,5 @@
+import { createNanoEvents, type Emitter } from 'nanoevents'
+
 import {
   createLayoutHistory,
   type LayoutHistoryState,
@@ -20,7 +22,15 @@ import {
   type MaterializationPlanInput,
   type MaterializationPlanResult,
 } from './runtime'
+import type { LayoutTransactionResult } from './transactions'
 import type { GridMetrics, LayoutNode, Rect } from './types'
+
+export interface RuntimeControllerEvents<TData = unknown> {
+  history: (history: LayoutHistoryState<TData>) => void
+  interaction: (session: LayoutInteractionSession<TData> | undefined) => void
+  state: (state: RuntimeControllerState<TData>) => void
+  transaction: (transaction: LayoutTransactionResult<TData>) => void
+}
 
 export interface RuntimeControllerState<TData = unknown> {
   history: LayoutHistoryState<TData>
@@ -29,11 +39,13 @@ export interface RuntimeControllerState<TData = unknown> {
 }
 
 export class RuntimeController<TData = unknown> {
+  private emitter: Emitter<RuntimeControllerEvents<TData>>
   private history: LayoutHistoryState<TData>
   private interactionSession?: LayoutInteractionSession<TData>
   private runtime: LayoutRuntime<TData>
 
   constructor(options: LayoutRuntimeOptions<TData>) {
+    this.emitter = createNanoEvents<RuntimeControllerEvents<TData>>()
     this.runtime = new LayoutRuntime(options)
     this.history = createLayoutHistory()
   }
@@ -59,6 +71,7 @@ export class RuntimeController<TData = unknown> {
     }
 
     this.interactionSession = createInteractionSession(sessionInput)
+    this.emitInteractionState()
 
     return this.interactionSession
   }
@@ -69,6 +82,7 @@ export class RuntimeController<TData = unknown> {
     }
 
     this.interactionSession = cancelInteraction(this.interactionSession)
+    this.emitInteractionState()
 
     return this.interactionSession
   }
@@ -86,8 +100,12 @@ export class RuntimeController<TData = unknown> {
 
       if (transaction.committed) {
         this.history = recordLayoutTransaction(this.history, transaction)
+        this.emitTransaction(transaction)
+        this.emitHistory()
       }
     }
+
+    this.emitInteractionState()
 
     return this.interactionSession
   }
@@ -125,6 +143,13 @@ export class RuntimeController<TData = unknown> {
     return state
   }
 
+  on<EventName extends keyof RuntimeControllerEvents<TData>>(
+    event: EventName,
+    listener: RuntimeControllerEvents<TData>[EventName]
+  ): () => void {
+    return this.emitter.on(event, listener)
+  }
+
   planMaterialization(
     input: Omit<MaterializationPlanInput<TData>, 'interactionSession'>
   ): MaterializationPlanResult<TData> {
@@ -148,6 +173,7 @@ export class RuntimeController<TData = unknown> {
       constraints: this.runtime.getConstraints(),
     })
     this.interactionSession = preview.session
+    this.emitInteractionState()
 
     return this.interactionSession
   }
@@ -168,6 +194,9 @@ export class RuntimeController<TData = unknown> {
     }
 
     this.history = navigation.history
+    this.emitTransaction(committed)
+    this.emitHistory()
+    this.emitState()
 
     return true
   }
@@ -188,7 +217,28 @@ export class RuntimeController<TData = unknown> {
     }
 
     this.history = navigation.history
+    this.emitTransaction(committed)
+    this.emitHistory()
+    this.emitState()
 
     return true
+  }
+
+  private emitHistory(): void {
+    this.emitter.emit('history', this.history)
+  }
+
+  private emitInteractionState(): void {
+    this.emitter.emit('interaction', this.interactionSession)
+    this.emitState()
+  }
+
+  private emitState(): void {
+    this.emitter.emit('state', this.getState())
+  }
+
+  private emitTransaction(transaction: LayoutTransactionResult<TData>): void {
+    this.emitter.emit('transaction', transaction)
+    this.emitState()
   }
 }

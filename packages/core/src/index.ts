@@ -11,7 +11,10 @@ export {
   validatePlacement,
   validateSize,
 } from './constraints'
-export type { RuntimeControllerState } from './controller'
+export type {
+  RuntimeControllerEvents,
+  RuntimeControllerState,
+} from './controller'
 export { RuntimeController } from './controller'
 export {
   estimateLayoutBounds,
