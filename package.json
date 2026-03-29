@@ -23,6 +23,7 @@
     "format": "biome check . --write",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
+    "release:local": "./scripts/release-local.sh",
     "release:publish": "changeset publish",
     "release:version": "changeset version",
     "test": "turbo run test",
