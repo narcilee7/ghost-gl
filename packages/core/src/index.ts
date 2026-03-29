@@ -12,8 +12,14 @@ export {
   validateSize,
 } from './constraints'
 export type {
+  BudgetEvent,
+  ControllerAPI,
+  InteractionLifecycleEvent,
+  MaterializationEvent,
   RuntimeControllerEvents,
   RuntimeControllerState,
+  SubscriptionOptions,
+  TransactionEvent,
 } from './controller'
 export { RuntimeController } from './controller'
 export {
