@@ -1,6 +1,6 @@
 {
   "name": "ghost-gl-react",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "React host package for ghost-gl.",
   "license": "MIT",
   "type": "module",
