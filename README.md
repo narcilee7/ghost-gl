@@ -126,33 +126,47 @@ unsubscribe()
 runtime.dispose()
 ```
 
-### React Integration (In Development)
-
-> **🚧 Mock API**: The React binding below shows the target API design. The actual implementation is in progress. Track progress in the [Roadmap](#roadmap).
+### React Integration (Ready)
 
 ```tsx
-import { GhostGrid } from 'ghost-gl-react'
-import { LayoutNode } from 'ghost-gl-core'
+import { GhostGrid, GhostGridSkeleton } from 'ghost-gl-react'
+import type { LayoutNode } from 'ghost-gl-core'
+
+interface WidgetData {
+  title: string
+  type: 'chart' | 'editor' | 'table'
+}
 
 function Dashboard() {
-  const nodes: LayoutNode[] = [
-    { id: '1', x: 0, y: 0, w: 4, h: 3 },
-    { id: '2', x: 4, y: 0, w: 4, h: 3 },
+  const nodes: LayoutNode<WidgetData>[] = [
+    { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Chart A', type: 'chart' } },
+    { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Editor B', type: 'editor' } },
   ]
 
   return (
     <GhostGrid
-      nodes={nodes}
-      renderItem={({ node, rect }) => {
-        // node.mode is 'ghost' | 'shell' | 'live'
-        switch (node.mode) {
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      policy={{ collisionDirection: 'vertical', autoCompact: true }}
+      renderItem={({ node, rect, mode }) => {
+        // mode is 'ghost' | 'shell' | 'live'
+        switch (mode) {
           case 'ghost':
-            return <GhostPlaceholder rect={rect} />
+            return null // Grid handles ghost positioning
           case 'shell':
-            return <WidgetShell title={node.data.title} rect={rect} />
+            return <GhostGridSkeleton animation="pulse" />
           case 'live':
-            return <HeavyChartWidget data={node.data} rect={rect} />
+            return (
+              <div style={{ padding: 16 }}>
+                <h3>{node.data.title}</h3>
+                <HeavyWidget type={node.data.type} />
+              </div>
+            )
         }
+      }}
+      onStateChange={(state) => {
+        console.log('Can undo:', state.canUndo)
       }}
     />
   )
@@ -372,7 +386,7 @@ ghost-gl/
 - [x] RBush spatial indexing
 - [x] Budget-driven materialization scheduler
 - [x] Transaction system with undo/redo
-- [ ] React bindings (`ghost-gl-react`)
+- [x] React bindings (`ghost-gl-react`)
 - [ ] Basic documentation site
 
 ### Q3 2025

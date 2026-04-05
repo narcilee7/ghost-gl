@@ -117,6 +117,7 @@ export interface ControllerAPI<TData = unknown> {
   canRedo(): boolean
 
   // Operations
+  setMetrics(metrics: GridMetrics): void
   moveNode(id: string, x: number, y: number): boolean
   resizeNode(id: string, w: number, h: number): boolean
   upsertNode(node: LayoutNode<TData>): void
@@ -214,6 +215,11 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
   }
 
   // ==================== Operations ====================
+
+  setMetrics(metrics: GridMetrics): void {
+    this.runtime.setMetrics(metrics)
+    this.emitState()
+  }
 
   moveNode(id: string, x: number, y: number): boolean {
     const success = this.runtime.moveNode(id, { x, y })
