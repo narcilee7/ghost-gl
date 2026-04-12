@@ -115,7 +115,7 @@ export function moveNodeRGL(
     return { metrics, nodes }
   }
 
-  const target: RGLNode = { ...nodes[targetIndex]!, x: newX, y: newY }
+  const target: RGLNode = { ...(nodes[targetIndex] as RGLNode), x: newX, y: newY }
   const result = [...nodes]
   result[targetIndex] = target
 
@@ -142,7 +142,7 @@ export function moveNodeRGL(
         metrics.nodesReRendered++
 
         // Cascade
-        const movedNode = result[idx]!
+        const movedNode = result[idx] as RGLNode
         const cascade = resolveCollisionsCascadeRGL(result, movedNode)
         metrics.nodesReRendered += cascade.nodesReRendered
         metrics.collisionChecks += cascade.collisionChecks

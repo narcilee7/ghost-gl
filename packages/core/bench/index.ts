@@ -21,8 +21,8 @@ import {
   queryViewport,
   RuntimeController,
 } from '../src'
-import { createBenchmarkFixtures, SCALE_TIERS, type ScaleTier } from './fixtures'
-import { ConsoleReporter, formatDuration } from './reporters/console-reporter'
+import { createBenchmarkFixtures } from './fixtures'
+import { ConsoleReporter } from './reporters/console-reporter'
 import { JSONReporter } from './reporters/json-reporter'
 
 const reporter = new ConsoleReporter({ detailed: true })
@@ -98,7 +98,7 @@ async function main(): Promise<void> {
           console.log(`     ${delta.suite} > ${delta.task}: +${delta.delta.meanChange.toFixed(1)}%`)
         }
       }
-    } catch (e) {
+    } catch (_e) {
       console.log('\n⚠️  Could not load baseline for comparison')
     }
   }

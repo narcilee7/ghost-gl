@@ -1,4 +1,4 @@
-import type { GridMetrics, LayoutNode, LayoutRect, Rect } from './types'
+import type { GridMetrics, LayoutNode, LayoutRect, Rect } from '../types'
 
 export function expandRect(rect: Rect, deltaX: number, deltaY: number): Rect {
   return {
@@ -18,10 +18,10 @@ export function intersectsRect(a: Rect, b: Rect): boolean {
   )
 }
 
-export function projectNodeToRect<TData = unknown>(
-  node: LayoutNode<TData>,
+export function projectNodeToRect<T = unknown>(
+  node: LayoutNode<T>,
   metrics: GridMetrics
-): LayoutRect<TData> {
+): LayoutRect<T> {
   const gapX = metrics.gapX ?? 0
   const gapY = metrics.gapY ?? 0
   const paddingLeft = metrics.paddingLeft ?? 0
@@ -72,8 +72,8 @@ export function unprojectRectToGrid(
   }
 }
 
-export function estimateLayoutBounds<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function estimateLayoutBounds<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   metrics: GridMetrics
 ): Rect {
   let maxRight = metrics.paddingLeft ?? 0

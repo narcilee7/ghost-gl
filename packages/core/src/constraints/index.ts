@@ -1,5 +1,5 @@
-import type { NodePlacement, NodeSize } from './layout'
-import type { LayoutNode } from './types'
+import type { NodePlacement, NodeSize } from '../layout'
+import type { LayoutNode } from '../types'
 
 export interface LayoutConstraints {
   columns?: number
@@ -17,8 +17,8 @@ export interface LayoutConstraintViolation {
   id: string
 }
 
-export function assertLayoutNodes<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function assertLayoutNodes<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   constraints?: LayoutConstraints
 ): void {
   for (const node of nodes) {
@@ -26,8 +26,8 @@ export function assertLayoutNodes<TData = unknown>(
   }
 }
 
-export function assertLayoutNode<TData = unknown>(
-  node: LayoutNode<TData>,
+export function assertLayoutNode<T = unknown>(
+  node: LayoutNode<T>,
   constraints?: LayoutConstraints
 ): void {
   const violation = validateNode(node, constraints)
@@ -37,8 +37,8 @@ export function assertLayoutNode<TData = unknown>(
   }
 }
 
-export function validateNode<TData = unknown>(
-  node: Pick<LayoutNode<TData>, 'id' | 'x' | 'y' | 'w' | 'h'>,
+export function validateNode<T = unknown>(
+  node: Pick<LayoutNode<T>, 'id' | 'x' | 'y' | 'w' | 'h'>,
   constraints?: LayoutConstraints
 ): LayoutConstraintViolation | undefined {
   if (node.x < 0) {
@@ -66,8 +66,8 @@ export function validateNode<TData = unknown>(
   return undefined
 }
 
-export function validatePlacement<TData = unknown>(
-  node: Pick<LayoutNode<TData>, 'id' | 'w' | 'h'>,
+export function validatePlacement<T = unknown>(
+  node: Pick<LayoutNode<T>, 'id' | 'w' | 'h'>,
   nextPlacement: NodePlacement,
   constraints?: LayoutConstraints
 ): LayoutConstraintViolation | undefined {
@@ -83,8 +83,8 @@ export function validatePlacement<TData = unknown>(
   )
 }
 
-export function validateSize<TData = unknown>(
-  node: Pick<LayoutNode<TData>, 'id' | 'x' | 'y'>,
+export function validateSize<T = unknown>(
+  node: Pick<LayoutNode<T>, 'id' | 'x' | 'y'>,
   nextSize: NodeSize,
   constraints?: LayoutConstraints
 ): LayoutConstraintViolation | undefined {

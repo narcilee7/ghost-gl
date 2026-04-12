@@ -43,8 +43,8 @@ import type {
  * />
  * ```
  */
-export function GhostGrid<TData = unknown, TSnapshot = unknown>(
-  props: GhostGridProps<TData, TSnapshot>
+export function GhostGrid<T = unknown, TSnapshot = unknown>(
+  props: GhostGridProps<T, TSnapshot>
 ): React.JSX.Element {
   const {
     initialNodes = [],
@@ -73,7 +73,7 @@ export function GhostGrid<TData = unknown, TSnapshot = unknown>(
   const columns = columnsProp ?? 12
 
   // Initialize grid hook with proper options type
-  const gridOptions: UseGhostGridOptions<TData> = {
+  const gridOptions: UseGhostGridOptions<T> = {
     containerRef,
     columns,
     debounceMs: 16,
@@ -90,7 +90,7 @@ export function GhostGrid<TData = unknown, TSnapshot = unknown>(
     gridOptions.policy = policy
   }
 
-  const grid = useGhostGrid<TData>(gridOptions)
+  const grid = useGhostGrid<T>(gridOptions)
 
   const { controller, state, materialized, bounds, metrics, updateViewport } = grid
 
@@ -174,12 +174,12 @@ export function GhostGrid<TData = unknown, TSnapshot = unknown>(
   }, [bounds?.height, containerWidth, style])
 
   // Create context value
-  const contextValue = useMemo<GhostGridContextValue<TData>>(
+  const contextValue = useMemo<GhostGridContextValue<T>>(
     () => ({
       bounds,
       containerRef,
       controller,
-      materialized: materialized as GhostGridContextValue<TData>['materialized'],
+      materialized: materialized as GhostGridContextValue<T>['materialized'],
       metrics,
       setViewport,
       state,
@@ -191,7 +191,7 @@ export function GhostGrid<TData = unknown, TSnapshot = unknown>(
   // Expose imperative API
   useEffect(() => {
     if (gridRef) {
-      const refObject = gridRef as React.MutableRefObject<import('../types').GhostGridRef<TData> | null>
+      const refObject = gridRef as React.MutableRefObject<import('../types').GhostGridRef<T> | null>
       refObject.current = {
         controller,
         containerRef,
@@ -231,11 +231,11 @@ export function GhostGrid<TData = unknown, TSnapshot = unknown>(
 
               if (!node) return null
 
-              const context: GhostGridItemRenderContext<TData> = {
+              const context: GhostGridItemRenderContext<T> = {
                 isDragging: state?.interactionSession?.targetId === id,
                 isResizing: false, // Will be updated when resize is implemented
                 mode,
-                node: node as typeof node & { data: TData },
+                node: node as typeof node & { data: T },
                 reason,
                 rect,
               }

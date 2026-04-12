@@ -2,8 +2,8 @@ import { projectNodeToRect } from '../geometry'
 import type { LayoutInteractionSession } from '../interaction'
 import type { GridMetrics, LayoutNode, LayoutRect } from '../types'
 
-export function collectInteractionActiveIds<TData = unknown>(
-  session: LayoutInteractionSession<TData> | undefined
+export function collectInteractionActiveIds<T = unknown>(
+  session: LayoutInteractionSession<T> | undefined
 ): Set<string> {
   const activeIds = new Set<string>()
 
@@ -36,10 +36,10 @@ export function collectInteractionActiveIds<TData = unknown>(
   return activeIds
 }
 
-export function resolvePlanningNodes<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  session: LayoutInteractionSession<TData> | undefined
-): readonly LayoutNode<TData>[] {
+export function resolvePlanningNodes<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  session: LayoutInteractionSession<T> | undefined
+): readonly LayoutNode<T>[] {
   if (
     session == null ||
     session.status !== 'active' ||
@@ -52,10 +52,10 @@ export function resolvePlanningNodes<TData = unknown>(
   return session.currentNodes
 }
 
-export function resolvePlanningRects<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function resolvePlanningRects<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   metrics: GridMetrics,
-  session: LayoutInteractionSession<TData> | undefined
-): LayoutRect<TData>[] {
+  session: LayoutInteractionSession<T> | undefined
+): LayoutRect<T>[] {
   return resolvePlanningNodes(nodes, session).map((node) => projectNodeToRect(node, metrics))
 }

@@ -18,7 +18,7 @@ export interface GridMetrics {
   paddingTop?: number
 }
 
-export interface LayoutNode<TData = unknown> {
+export interface LayoutNode<T = unknown> {
   id: string
   x: number
   y: number
@@ -32,7 +32,7 @@ export interface LayoutNode<TData = unknown> {
   draggable?: boolean
   /** Whether the node can be resized (defaults to true) */
   resizable?: boolean
-  data?: TData
+  data?: T
 }
 
 /** Layout behavior policy configuration */
@@ -48,26 +48,26 @@ export interface LayoutPolicy {
   minGapY?: number
 }
 
-export interface LayoutRect<TData = unknown> extends Rect {
+export interface LayoutRect<T = unknown> extends Rect {
   id: string
   gridX: number
   gridY: number
   gridWidth: number
   gridHeight: number
-  node: LayoutNode<TData>
+  node: LayoutNode<T>
 }
 
-export interface MaterializedNode<TData = unknown> {
+export interface MaterializedNode<T = unknown> {
   id: string
   rect: Rect
   mode: MaterializationMode
   reason: 'visible' | 'overscan' | 'dragging' | 'cooldown' | 'parked'
-  node: LayoutNode<TData>
+  node: LayoutNode<T>
 }
 
-export interface SnapshotAdapter<TSnapshot = unknown> {
+export interface SnapshotAdapter<S = unknown> {
   canSnapshot?: (id: string) => boolean
-  capture?: (id: string) => TSnapshot | undefined
-  restore?: (id: string, snapshot: TSnapshot | undefined) => void
+  capture?: (id: string) => S | undefined
+  restore?: (id: string, snapshot: S | undefined) => void
   dispose?: (id: string) => void
 }

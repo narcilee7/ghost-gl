@@ -20,12 +20,10 @@ import type { GhostGridItemProps, GhostGridItemRenderContext } from '../types'
  * />
  * ```
  */
-export function GhostGridItem<TData = unknown>(
-  props: GhostGridItemProps<TData>
-): JSX.Element | null {
+export function GhostGridItem<T = unknown>(props: GhostGridItemProps<T>): JSX.Element | null {
   const { materializedNode, renderItem, isDragging = false, isResizing = false } = props
   const { id, rect, mode, reason, node } = materializedNode
-  const state = useGridState<TData>()
+  const state = useGridState<T>()
 
   // Determine if this item is being interacted with
   const isItemDragging = useMemo(() => {
@@ -40,12 +38,12 @@ export function GhostGridItem<TData = unknown>(
   }, [isResizing])
 
   // Create render context
-  const context: GhostGridItemRenderContext<TData> = useMemo(
+  const context: GhostGridItemRenderContext<T> = useMemo(
     () => ({
       isDragging: isItemDragging,
       isResizing: isItemResizing,
       mode,
-      node: node as typeof node & { data: TData },
+      node: node as typeof node & { data: T },
       reason,
       rect,
     }),

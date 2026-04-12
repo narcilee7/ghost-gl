@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { type ControllerAPI, RuntimeController } from './controller'
+import { type ControllerAPI, RuntimeController } from '.'
 
 describe('RuntimeController', () => {
   const metrics = {
@@ -172,7 +172,7 @@ describe('RuntimeController', () => {
       })
 
       // Second plan - scroll to trigger transitions
-      const plan = controller.planMaterialization({
+      const _plan = controller.planMaterialization({
         height: 200,
         left: 0,
         top: 400, // Scrolled down

@@ -4,8 +4,8 @@
  * Outputs results in JSON format for further analysis and visualization.
  */
 
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import type { Bench, Task } from 'tinybench'
 
 export interface BenchmarkReport {
@@ -164,7 +164,7 @@ export class JSONReporter {
   }
 
   private convertTask(task: Task): BenchmarkTask {
-    const stats = task.result!
+    const stats = task.result as NonNullable<typeof task.result>
 
     return {
       name: task.name,

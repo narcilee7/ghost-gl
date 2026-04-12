@@ -6,30 +6,30 @@ import {
   type LayoutOperationOptions,
   type LayoutOperationResult,
   shouldReuseMutationContext,
-} from './operations'
-import type { LayoutNode } from './types'
+} from '../operations'
+import type { LayoutNode } from '../types'
 
-export interface LayoutTransactionOptions<TData = unknown> extends LayoutOperationOptions<TData> {}
+export interface LayoutTransactionOptions<T = unknown> extends LayoutOperationOptions<T> {}
 
-export interface LayoutTransactionResult<TData = unknown> {
+export interface LayoutTransactionResult<T = unknown> {
   changed: boolean
   committed: boolean
   failedAt?: number
-  inverseOperations: readonly LayoutOperation<TData>[]
-  nextNodes: readonly LayoutNode<TData>[]
-  operations: readonly LayoutOperation<TData>[]
-  results: readonly LayoutOperationResult<TData>[]
+  inverseOperations: readonly LayoutOperation<T>[]
+  nextNodes: readonly LayoutNode<T>[]
+  operations: readonly LayoutOperation<T>[]
+  results: readonly LayoutOperationResult<T>[]
 }
 
-export function applyLayoutTransaction<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operations: readonly LayoutOperation<TData>[],
-  options: LayoutTransactionOptions<TData> = {}
-): LayoutTransactionResult<TData> {
+export function applyLayoutTransaction<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operations: readonly LayoutOperation<T>[],
+  options: LayoutTransactionOptions<T> = {}
+): LayoutTransactionResult<T> {
   let nextNodes = nodes
-  let mutationContext: LayoutOperationOptions<TData>['mutationContext']
-  const inverseOperations: LayoutOperation<TData>[] = []
-  const results: LayoutOperationResult<TData>[] = []
+  let mutationContext: LayoutOperationOptions<T>['mutationContext']
+  const inverseOperations: LayoutOperation<T>[] = []
+  const results: LayoutOperationResult<T>[] = []
 
   for (let index = 0; index < operations.length; index += 1) {
     const operation = operations[index]
@@ -48,7 +48,7 @@ export function applyLayoutTransaction<TData = unknown>(
 
     const inverseOperation = createInverseOperation(previousNodes, operation)
 
-    const operationOptions: LayoutOperationOptions<TData> = { ...options }
+    const operationOptions: LayoutOperationOptions<T> = { ...options }
 
     if (mutationContext !== undefined) {
       operationOptions.mutationContext = mutationContext
@@ -87,10 +87,10 @@ export function applyLayoutTransaction<TData = unknown>(
   }
 }
 
-function createInverseOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: LayoutOperation<TData>
-): LayoutOperation<TData> | undefined {
+function createInverseOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: LayoutOperation<T>
+): LayoutOperation<T> | undefined {
   switch (operation.type) {
     case 'move': {
       const node = nodes.find((candidate) => candidate.id === operation.id)
@@ -159,10 +159,10 @@ function createInverseOperation<TData = unknown>(
   }
 }
 
-function cloneNode<TData = unknown>(node: LayoutNode<TData>): LayoutNode<TData> {
+function cloneNode<T = unknown>(node: LayoutNode<T>): LayoutNode<T> {
   return { ...node }
 }
 
-function cloneNodes<TData = unknown>(nodes: readonly LayoutNode<TData>[]): LayoutNode<TData>[] {
+function cloneNodes<T = unknown>(nodes: readonly LayoutNode<T>[]): LayoutNode<T>[] {
   return nodes.map(cloneNode)
 }

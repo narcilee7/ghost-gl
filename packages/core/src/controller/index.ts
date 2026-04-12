@@ -6,7 +6,7 @@ import {
   recordLayoutTransaction,
   redoLayoutHistory,
   undoLayoutHistory,
-} from './history'
+} from '../history'
 import {
   cancelInteraction,
   commitInteraction,
@@ -14,59 +14,59 @@ import {
   type LayoutInteractionKind,
   type LayoutInteractionSession,
   previewInteraction,
-} from './interaction'
-import type { LayoutOperation } from './operations'
+} from '../interaction'
+import type { LayoutOperation } from '../operations'
 import {
   LayoutRuntime,
   type LayoutRuntimeOptions,
   type MaterializationPlanInput,
   type MaterializationPlanResult,
-} from './runtime'
-import type { LayoutTransactionResult } from './transactions'
-import type { GridMetrics, LayoutNode, MaterializationMode, Rect } from './types'
+} from '../runtime'
+import type { LayoutTransactionResult } from '../transactions'
+import type { GridMetrics, LayoutNode, MaterializationMode, Rect } from '../types'
 
 /** Controller event types for host subscription */
-export interface RuntimeControllerEvents<TData = unknown> {
+export interface RuntimeControllerEvents<T = unknown> {
   /** Emitted when any state changes (aggregated) */
-  state: (state: RuntimeControllerState<TData>) => void
+  state: (state: RuntimeControllerState<T>) => void
 
   /** Emitted when nodes change (move, resize, add, remove) */
-  nodes: (nodes: readonly LayoutNode<TData>[]) => void
+  nodes: (nodes: readonly LayoutNode<T>[]) => void
 
   /** Emitted when interaction session state changes */
-  interaction: (event: InteractionLifecycleEvent<TData>) => void
+  interaction: (event: InteractionLifecycleEvent<T>) => void
 
   /** Emitted when a transaction is committed */
-  transaction: (event: TransactionEvent<TData>) => void
+  transaction: (event: TransactionEvent<T>) => void
 
   /** Emitted when history changes (undo/redo availability) */
-  history: (history: LayoutHistoryState<TData>) => void
+  history: (history: LayoutHistoryState<T>) => void
 
   /** Emitted when materialization plan changes */
-  materialization: (event: MaterializationEvent<TData>) => void
+  materialization: (event: MaterializationEvent<T>) => void
 
   /** Emitted for budget-related events */
   budget: (event: BudgetEvent) => void
 }
 
 /** Detailed interaction lifecycle event */
-export interface InteractionLifecycleEvent<TData = unknown> {
+export interface InteractionLifecycleEvent<T = unknown> {
   type: 'begin' | 'preview' | 'commit' | 'cancel'
-  session: LayoutInteractionSession<TData>
-  previousSession: LayoutInteractionSession<TData> | undefined
+  session: LayoutInteractionSession<T>
+  previousSession: LayoutInteractionSession<T> | undefined
 }
 
 /** Detailed transaction event */
-export interface TransactionEvent<TData = unknown> {
+export interface TransactionEvent<T = unknown> {
   type: 'commit' | 'undo' | 'redo'
-  transaction: LayoutTransactionResult<TData>
+  transaction: LayoutTransactionResult<T>
   source: 'interaction' | 'api' | 'history'
 }
 
 /** Materialization planning event */
-export interface MaterializationEvent<TData = unknown> {
+export interface MaterializationEvent<T = unknown> {
   type: 'plan' | 'mode-change'
-  plan: MaterializationPlanResult<TData>
+  plan: MaterializationPlanResult<T>
   /** Mode transitions for tracking */
   transitions:
     | Array<{
@@ -95,10 +95,10 @@ export interface SubscriptionOptions {
   nodeFilter?: string[]
 }
 
-export interface RuntimeControllerState<TData = unknown> {
-  history: LayoutHistoryState<TData>
-  interactionSession: LayoutInteractionSession<TData> | undefined
-  nodes: readonly LayoutNode<TData>[]
+export interface RuntimeControllerState<T = unknown> {
+  history: LayoutHistoryState<T>
+  interactionSession: LayoutInteractionSession<T> | undefined
+  nodes: readonly LayoutNode<T>[]
   metrics: GridMetrics
   bounds: Rect
   canUndo: boolean
@@ -106,13 +106,13 @@ export interface RuntimeControllerState<TData = unknown> {
 }
 
 /** Public API for host interaction */
-export interface ControllerAPI<TData = unknown> {
+export interface ControllerAPI<T = unknown> {
   // Queries
-  getNodes(): readonly LayoutNode<TData>[]
-  getNode(id: string): LayoutNode<TData> | undefined
+  getNodes(): readonly LayoutNode<T>[]
+  getNode(id: string): LayoutNode<T> | undefined
   getBounds(): Rect
   getMetrics(): GridMetrics
-  getState(): RuntimeControllerState<TData>
+  getState(): RuntimeControllerState<T>
   canUndo(): boolean
   canRedo(): boolean
 
@@ -120,7 +120,7 @@ export interface ControllerAPI<TData = unknown> {
   setMetrics(metrics: GridMetrics): void
   moveNode(id: string, x: number, y: number): boolean
   resizeNode(id: string, w: number, h: number): boolean
-  upsertNode(node: LayoutNode<TData>): void
+  upsertNode(node: LayoutNode<T>): void
   removeNode(id: string): boolean
 
   // Interaction
@@ -128,8 +128,8 @@ export interface ControllerAPI<TData = unknown> {
     id: string
     kind: LayoutInteractionKind
     targetId?: string
-  }): LayoutInteractionSession<TData>
-  previewInteraction(operations: ReadonlyArray<LayoutOperation<TData>>): void
+  }): LayoutInteractionSession<T>
+  previewInteraction(operations: ReadonlyArray<LayoutOperation<T>>): void
   commitInteraction(): void
   cancelInteraction(): void
 
@@ -139,31 +139,31 @@ export interface ControllerAPI<TData = unknown> {
 
   // Materialization
   planMaterialization(
-    input: Omit<MaterializationPlanInput<TData>, 'interactionSession'>
-  ): MaterializationPlanResult<TData>
+    input: Omit<MaterializationPlanInput<T>, 'interactionSession'>
+  ): MaterializationPlanResult<T>
 
   // Subscription
-  on<EventName extends keyof RuntimeControllerEvents<TData>>(
+  on<EventName extends keyof RuntimeControllerEvents<T>>(
     event: EventName,
-    listener: RuntimeControllerEvents<TData>[EventName]
+    listener: RuntimeControllerEvents<T>[EventName]
   ): () => void
   subscribe(
-    listener: (state: RuntimeControllerState<TData>) => void,
+    listener: (state: RuntimeControllerState<T>) => void,
     options?: SubscriptionOptions
   ): () => void
 }
 
-export class RuntimeController<TData = unknown> implements ControllerAPI<TData> {
-  private emitter: Emitter<RuntimeControllerEvents<TData>>
-  private history: LayoutHistoryState<TData>
-  private interactionSession?: LayoutInteractionSession<TData>
-  private runtime: LayoutRuntime<TData>
+export class RuntimeController<T = unknown> implements ControllerAPI<T> {
+  private emitter: Emitter<RuntimeControllerEvents<T>>
+  private history: LayoutHistoryState<T>
+  private interactionSession?: LayoutInteractionSession<T>
+  private runtime: LayoutRuntime<T>
 
   // Track previous materialization for diffing
   private previousMaterialized = new Map<string, MaterializationMode>()
 
-  constructor(options: LayoutRuntimeOptions<TData>) {
-    this.emitter = createNanoEvents<RuntimeControllerEvents<TData>>()
+  constructor(options: LayoutRuntimeOptions<T>) {
+    this.emitter = createNanoEvents<RuntimeControllerEvents<T>>()
     this.runtime = new LayoutRuntime(options)
     this.history = createLayoutHistory()
   }
@@ -174,11 +174,11 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
     return this.runtime.getBounds()
   }
 
-  getHistory(): LayoutHistoryState<TData> {
+  getHistory(): LayoutHistoryState<T> {
     return this.history
   }
 
-  getInteractionSession(): LayoutInteractionSession<TData> | undefined {
+  getInteractionSession(): LayoutInteractionSession<T> | undefined {
     return this.interactionSession
   }
 
@@ -186,15 +186,15 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
     return this.runtime.getMetrics()
   }
 
-  getNode(id: string): LayoutNode<TData> | undefined {
+  getNode(id: string): LayoutNode<T> | undefined {
     return this.runtime.getNode(id)
   }
 
-  getNodes(): readonly LayoutNode<TData>[] {
+  getNodes(): readonly LayoutNode<T>[] {
     return this.runtime.getNodes()
   }
 
-  getState(): RuntimeControllerState<TData> {
+  getState(): RuntimeControllerState<T> {
     return {
       bounds: this.runtime.getBounds(),
       canRedo: this.history.future.length > 0,
@@ -239,7 +239,7 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
     return success
   }
 
-  upsertNode(node: LayoutNode<TData>): void {
+  upsertNode(node: LayoutNode<T>): void {
     this.runtime.upsertNode(node)
     this.emitNodesChange()
     this.emitState()
@@ -260,11 +260,11 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
     id: string
     kind: LayoutInteractionKind
     targetId?: string
-  }): LayoutInteractionSession<TData> {
+  }): LayoutInteractionSession<T> {
     const sessionInput: {
       id: string
       kind: LayoutInteractionKind
-      nodes: readonly LayoutNode<TData>[]
+      nodes: readonly LayoutNode<T>[]
       targetId?: string
     } = {
       id: input.id,
@@ -289,7 +289,7 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
     return this.interactionSession
   }
 
-  previewInteraction(operations: readonly LayoutOperation<TData>[]): void {
+  previewInteraction(operations: readonly LayoutOperation<T>[]): void {
     if (this.interactionSession == null) {
       return
     }
@@ -359,9 +359,9 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
   // ==================== Materialization ====================
 
   planMaterialization(
-    input: Omit<MaterializationPlanInput<TData>, 'interactionSession'>
-  ): MaterializationPlanResult<TData> {
-    const planInput: MaterializationPlanInput<TData> = { ...input }
+    input: Omit<MaterializationPlanInput<T>, 'interactionSession'>
+  ): MaterializationPlanResult<T> {
+    const planInput: MaterializationPlanInput<T> = { ...input }
 
     if (this.interactionSession !== undefined) {
       planInput.interactionSession = this.interactionSession
@@ -415,15 +415,14 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
 
     // Emit budget event if needed (check if summary has budget info)
     const summary = plan.summary as Record<string, number>
-    const mountsWithinBudget =
-      summary['mountsWithinBudget'] ?? plan.summary.live + plan.summary.shell
+    const mountsWithinBudget = summary.mountsWithinBudget ?? plan.summary.live + plan.summary.shell
     if (mountsWithinBudget < plan.summary.live + plan.summary.shell) {
       this.emitter.emit('budget', {
         mountBudgetRemaining: 0,
         mountsRemaining: 0,
         type: 'exceeded',
         unmountBudgetRemaining: 8,
-        unmountsRemaining: summary['unmountsWithinBudget'] ?? 0,
+        unmountsRemaining: summary.unmountsWithinBudget ?? 0,
       })
     }
 
@@ -490,15 +489,15 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
 
   // ==================== Subscription ====================
 
-  on<EventName extends keyof RuntimeControllerEvents<TData>>(
+  on<EventName extends keyof RuntimeControllerEvents<T>>(
     event: EventName,
-    listener: RuntimeControllerEvents<TData>[EventName]
+    listener: RuntimeControllerEvents<T>[EventName]
   ): () => void {
     return this.emitter.on(event, listener)
   }
 
   subscribe(
-    listener: (state: RuntimeControllerState<TData>) => void,
+    listener: (state: RuntimeControllerState<T>) => void,
     options: SubscriptionOptions = {}
   ): () => void {
     const { debounceMs = 0, nodeFilter } = options
@@ -543,7 +542,7 @@ export class RuntimeController<TData = unknown> implements ControllerAPI<TData> 
     this.emitter.emit('state', this.getState())
   }
 
-  private emitTransaction(event: TransactionEvent<TData>): void {
+  private emitTransaction(event: TransactionEvent<T>): void {
     this.emitter.emit('transaction', event)
   }
 }

@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
-
+import { applyLayoutTransaction } from '../transactions'
 import {
   createLayoutHistory,
   recordLayoutTransaction,
   redoLayoutHistory,
   undoLayoutHistory,
-} from './history'
-import { applyLayoutTransaction } from './transactions'
+} from '.'
 
 describe('layout history', () => {
   it('records committed transactions and supports undo/redo', () => {

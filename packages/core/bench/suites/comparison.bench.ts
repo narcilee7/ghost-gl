@@ -8,9 +8,7 @@ import { Bench } from 'tinybench'
 import {
   applyLayoutOperation,
   applyLayoutTransaction,
-  createInteractionSession,
   LayoutRuntime,
-  previewInteraction,
   queryViewport,
   RuntimeController,
 } from '../../src'
@@ -166,7 +164,10 @@ async function runComparisonBenchmark(): Promise<void> {
   printSummary(results)
 }
 
-function collectComparisonResults(bench: Bench, tier: ScaleTier): Record<string, ComparisonResult> {
+function collectComparisonResults(
+  bench: Bench,
+  _tier: ScaleTier
+): Record<string, ComparisonResult> {
   const results: Record<string, ComparisonResult> = {}
 
   const tasks = bench.tasks
@@ -197,7 +198,7 @@ function collectComparisonResults(bench: Bench, tier: ScaleTier): Record<string,
   return results
 }
 
-function printComparisonTable(bench: Bench, tier: ScaleTier): void {
+function printComparisonTable(bench: Bench, _tier: ScaleTier): void {
   console.log('\n  Results:')
 
   // Group tasks by operation type
@@ -210,7 +211,7 @@ function printComparisonTable(bench: Bench, tier: ScaleTier): void {
     if (!operations.has(opName)) {
       operations.set(opName, {})
     }
-    operations.get(opName)![impl] = task
+    ;(operations.get(opName) as Record<string, Task>)[impl] = task
   }
 
   for (const [opName, impls] of operations) {

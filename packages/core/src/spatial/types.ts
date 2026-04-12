@@ -3,13 +3,13 @@ import type { LayoutNode, Rect } from '../types'
 /**
  * Spatial item with RBush-compatible bounding box
  */
-export interface SpatialItem<TData = unknown> {
+export interface SpatialItem<T = unknown> {
   id: string
   minX: number
   minY: number
   maxX: number
   maxY: number
-  node: LayoutNode<TData>
+  node: LayoutNode<T>
 }
 
 /**
@@ -45,7 +45,7 @@ export interface CollisionQuery {
 /**
  * Spatial search result with distance info
  */
-export interface SpatialSearchResult<TData = unknown> {
-  item: SpatialItem<TData>
+export interface SpatialSearchResult<T = unknown> {
+  item: SpatialItem<T>
   distance: number
 }

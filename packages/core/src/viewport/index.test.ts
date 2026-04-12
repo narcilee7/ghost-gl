@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { estimateLayoutBounds, projectNodeToRect, queryViewport } from './index'
+import { estimateLayoutBounds, projectNodeToRect, queryViewport } from '../index'
 
 describe('viewport query', () => {
   const metrics = {

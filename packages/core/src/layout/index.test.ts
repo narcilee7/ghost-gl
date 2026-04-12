@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { collides, compactLayout, findAutoPlacement, moveNode, resizeNode } from './layout'
+import { collides, compactLayout, findAutoPlacement, moveNode, resizeNode } from '.'
 
 describe('layout kernel', () => {
   it('detects grid collisions', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { planMaterialization, type SchedulerDecision } from './scheduler'
+import { planMaterialization } from './scheduler'
 
 describe('internal scheduler', () => {
   it('promotes visible nodes to live', () => {

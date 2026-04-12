@@ -2,23 +2,23 @@ import {
   assertLayoutNodes,
   createLayoutViolationError,
   type LayoutConstraints,
-} from './constraints'
-import { estimateLayoutBounds, projectNodeToRect, unprojectRectToGrid } from './geometry'
-import type { LayoutInteractionSession } from './interaction'
-import { collectInteractionActiveIds, resolvePlanningNodes } from './internal/interaction-bridge'
+} from '../constraints'
+import { estimateLayoutBounds, projectNodeToRect, unprojectRectToGrid } from '../geometry'
+import type { LayoutInteractionSession } from '../interaction'
+import { collectInteractionActiveIds, resolvePlanningNodes } from '../internal/interaction-bridge'
 import {
   type PlanMaterializationInput,
   planMaterializationFromKernel,
   type SchedulerViewport,
-} from './internal/scheduler'
-import { createNodeMap } from './node-map'
+} from '../internal/scheduler'
+import { createNodeMap } from '../node-map'
 import {
   applyLayoutOperation,
   type LayoutOperation,
   type LayoutOperationResult,
-} from './operations'
-import { SpatialKernel } from './spatial'
-import { applyLayoutTransaction, type LayoutTransactionResult } from './transactions'
+} from '../operations'
+import { SpatialKernel } from '../spatial'
+import { applyLayoutTransaction, type LayoutTransactionResult } from '../transactions'
 import type {
   GridMetrics,
   LayoutNode,
@@ -26,18 +26,18 @@ import type {
   MaterializationMode,
   MaterializedNode,
   Rect,
-} from './types'
-import { queryViewport } from './viewport'
+} from '../types'
+import { queryViewport } from '../viewport'
 
-export interface LayoutRuntimeOptions<TData = unknown> {
+export interface LayoutRuntimeOptions<T = unknown> {
   constraints?: LayoutConstraints
   metrics: GridMetrics
-  nodes?: readonly LayoutNode<TData>[]
+  nodes?: readonly LayoutNode<T>[]
 }
 
-export interface MaterializationPlanInput<TData = unknown> extends Rect {
+export interface MaterializationPlanInput<T = unknown> extends Rect {
   activeIds?: readonly string[]
-  interactionSession?: LayoutInteractionSession<TData>
+  interactionSession?: LayoutInteractionSession<T>
   overscanX?: number
   overscanY?: number
   timestamp?: number
@@ -45,15 +45,15 @@ export interface MaterializationPlanInput<TData = unknown> extends Rect {
   velocityY?: number
 }
 
-export interface MaterializationPlanResult<TData = unknown> {
+export interface MaterializationPlanResult<T = unknown> {
   bounds: Rect
-  materialized: MaterializedNode<TData>[]
+  materialized: MaterializedNode<T>[]
   summary: {
     ghost: number
     live: number
     shell: number
   }
-  visible: LayoutRect<TData>[]
+  visible: LayoutRect<T>[]
 }
 
 /**
@@ -62,18 +62,18 @@ export interface MaterializationPlanResult<TData = unknown> {
  * All spatial operations (viewport query, collision detection, bounds calculation)
  * use the internal RBush spatial index for O(log n) performance.
  */
-export class LayoutRuntime<TData = unknown> {
+export class LayoutRuntime<T = unknown> {
   private bounds: Rect
   private constraints: LayoutConstraints
-  private kernel: SpatialKernel<TData>
+  private kernel: SpatialKernel<T>
   private lastInteractionAt = new Map<string, number>()
   private lastVisibleAt = new Map<string, number>()
   private metrics: GridMetrics
   private modeById = new Map<string, MaterializationMode>()
-  private nodeMap: Map<string, LayoutNode<TData>>
-  private nodes: LayoutNode<TData>[]
+  private nodeMap: Map<string, LayoutNode<T>>
+  private nodes: LayoutNode<T>[]
 
-  constructor(options: LayoutRuntimeOptions<TData>) {
+  constructor(options: LayoutRuntimeOptions<T>) {
     const nodes = [...(options.nodes ?? [])]
 
     this.constraints = options.constraints ?? {}
@@ -102,15 +102,15 @@ export class LayoutRuntime<TData = unknown> {
     return this.modeById.get(id)
   }
 
-  getNode(id: string): LayoutNode<TData> | undefined {
+  getNode(id: string): LayoutNode<T> | undefined {
     return this.nodeMap.get(id)
   }
 
-  getNodeMap(): ReadonlyMap<string, LayoutNode<TData>> {
+  getNodeMap(): ReadonlyMap<string, LayoutNode<T>> {
     return this.nodeMap
   }
 
-  getNodes(): readonly LayoutNode<TData>[] {
+  getNodes(): readonly LayoutNode<T>[] {
     return this.nodes
   }
 
@@ -118,11 +118,11 @@ export class LayoutRuntime<TData = unknown> {
    * Get the internal spatial kernel for advanced queries.
    * This allows direct access to O(log n) spatial operations.
    */
-  getSpatialKernel(): SpatialKernel<TData> {
+  getSpatialKernel(): SpatialKernel<T> {
     return this.kernel
   }
 
-  dispatch(operation: LayoutOperation<TData>): LayoutOperationResult<TData> {
+  dispatch(operation: LayoutOperation<T>): LayoutOperationResult<T> {
     const result = applyLayoutOperation(this.nodes, operation, {
       constraints: this.constraints,
     })
@@ -138,7 +138,7 @@ export class LayoutRuntime<TData = unknown> {
     return result
   }
 
-  dispatchAll(operations: readonly LayoutOperation<TData>[]): LayoutTransactionResult<TData> {
+  dispatchAll(operations: readonly LayoutOperation<T>[]): LayoutTransactionResult<T> {
     const result = applyLayoutTransaction(this.nodes, operations, {
       constraints: this.constraints,
     })
@@ -170,7 +170,7 @@ export class LayoutRuntime<TData = unknown> {
     )
   }
 
-  planMaterialization(input: MaterializationPlanInput<TData>): MaterializationPlanResult<TData> {
+  planMaterialization(input: MaterializationPlanInput<T>): MaterializationPlanResult<T> {
     const timestamp = input.timestamp ?? Date.now()
     const activeIds = new Set(input.activeIds ?? [])
     const interactionActiveIds = collectInteractionActiveIds(input.interactionSession)
@@ -256,7 +256,7 @@ export class LayoutRuntime<TData = unknown> {
     })
 
     const _decisions = new Map(plan.decisions.map((decision) => [decision.id, decision]))
-    const materialized: MaterializedNode<TData>[] = []
+    const materialized: MaterializedNode<T>[] = []
     const visibleRectIds = new Set(visible.map((rect) => rect.id))
 
     // Process all decisions from the scheduler plan
@@ -301,7 +301,7 @@ export class LayoutRuntime<TData = unknown> {
       overscanX?: number
       overscanY?: number
     }
-  ): LayoutRect<TData>[] {
+  ): LayoutRect<T>[] {
     return queryViewport(this.nodes, viewport, this.metrics, options)
   }
 
@@ -311,7 +311,7 @@ export class LayoutRuntime<TData = unknown> {
   queryCollisions(
     rect: { x: number; y: number; w: number; h: number },
     excludeId?: string
-  ): LayoutNode<TData>[] {
+  ): LayoutNode<T>[] {
     const query: { excludeId?: string; h: number; w: number; x: number; y: number } = {
       h: rect.h,
       w: rect.w,
@@ -339,7 +339,7 @@ export class LayoutRuntime<TData = unknown> {
     return this.dispatch({ id, type: 'remove' }).status === 'applied'
   }
 
-  replaceNodes(nodes: readonly LayoutNode<TData>[]): void {
+  replaceNodes(nodes: readonly LayoutNode<T>[]): void {
     const result = this.dispatch({ nodes, type: 'replace' })
 
     if (result.status === 'rejected') {
@@ -360,7 +360,7 @@ export class LayoutRuntime<TData = unknown> {
     this.lastInteractionAt.set(id, timestamp)
   }
 
-  upsertNode(node: LayoutNode<TData>): void {
+  upsertNode(node: LayoutNode<T>): void {
     const result = this.dispatch({ node, type: 'upsert' })
 
     if (result.status === 'rejected') {
@@ -375,7 +375,7 @@ export class LayoutRuntime<TData = unknown> {
    * Note: For spatial index, we do incremental updates rather than full rebuild
    * to maintain O(log n) performance characteristics.
    */
-  private rebuildState(operation?: LayoutOperation<TData>): void {
+  private rebuildState(operation?: LayoutOperation<T>): void {
     this.nodeMap = createNodeMap(this.nodes)
 
     // Incremental update of spatial index
@@ -394,7 +394,7 @@ export class LayoutRuntime<TData = unknown> {
    * Incrementally update spatial index based on operation type.
    * This avoids O(n) rebuild cost for single node changes.
    */
-  private updateSpatialIndexIncremental(operation: LayoutOperation<TData>): void {
+  private updateSpatialIndexIncremental(operation: LayoutOperation<T>): void {
     switch (operation.type) {
       case 'move':
       case 'resize': {
@@ -417,7 +417,7 @@ export class LayoutRuntime<TData = unknown> {
     }
   }
 
-  private syncOperationCaches(operation: LayoutOperation<TData>): void {
+  private syncOperationCaches(operation: LayoutOperation<T>): void {
     switch (operation.type) {
       case 'move':
       case 'resize':
@@ -472,8 +472,8 @@ function _toSchedulerViewport(input: MaterializationPlanInput): SchedulerViewpor
   return viewport
 }
 
-function throwRejectedOperation<TData = unknown>(
-  result: LayoutOperationResult<TData>,
+function throwRejectedOperation<T = unknown>(
+  result: LayoutOperationResult<T>,
   constraints: LayoutConstraints
 ): never {
   if (result.violation != null) {

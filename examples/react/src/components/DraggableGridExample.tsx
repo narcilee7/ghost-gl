@@ -1,9 +1,5 @@
 import type { LayoutNode, RuntimeControllerState } from 'ghost-gl-core'
-import {
-  GhostGrid,
-  useGhostGridDrag,
-  type GhostGridRef,
-} from 'ghost-gl-react'
+import { GhostGrid, type GhostGridRef, useGhostGridDrag } from 'ghost-gl-react'
 import { useMemo, useRef, useState } from 'react'
 
 interface WidgetData {
@@ -47,7 +43,17 @@ function DraggableItem({
       <div className="grid-item-header" {...handlers}>
         <span className="title">{data.title}</span>
         <div className="drag-handle" title="Drag to move">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Drag Handle">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-label="Drag Handle"
+          >
             <polyline points="5 9 2 12 5 15"></polyline>
             <polyline points="9 5 12 2 15 5"></polyline>
             <polyline points="19 9 22 12 19 15"></polyline>
@@ -142,19 +148,53 @@ export function DraggableGridExample() {
       </div>
 
       <div className="example-toolbar">
-        <button type="button" onClick={() => gridRef.current?.controller?.undo()} disabled={!stats?.canUndo}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Undo"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        <button
+          type="button"
+          onClick={() => gridRef.current?.controller?.undo()}
+          disabled={!stats?.canUndo}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-label="Undo"
+          >
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
           Undo
         </button>
-        <button type="button" onClick={() => gridRef.current?.controller?.redo()} disabled={!stats?.canRedo}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Redo"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        <button
+          type="button"
+          onClick={() => gridRef.current?.controller?.redo()}
+          disabled={!stats?.canRedo}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-label="Redo"
+          >
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
           Redo
         </button>
         <button
           type="button"
           className="primary"
           onClick={() => {
-            console.log("Add widget clicked! gridRef:", gridRef.current)
+            console.log('Add widget clicked! gridRef:', gridRef.current)
             // Add a new widget
             const id = String(Date.now())
             const colors = [

@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { GhostGrid } from './GhostGrid'
 import { useGhostGridDrag } from '../hooks/useGhostGridDrag'
+import { GhostGrid } from './GhostGrid'
 
 describe('GhostGrid Drag and Drop', () => {
   // Simple draggable item component for testing
@@ -35,9 +35,7 @@ describe('GhostGrid Drag and Drop', () => {
   }
 
   it('should render GhostGrid with DnD provider', async () => {
-    const initialNodes = [
-      { id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } },
-    ]
+    const initialNodes = [{ id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } }]
 
     render(
       <GhostGrid
@@ -58,9 +56,7 @@ describe('GhostGrid Drag and Drop', () => {
   })
 
   it('should handle pointer down to start drag', async () => {
-    const initialNodes = [
-      { id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } },
-    ]
+    const initialNodes = [{ id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } }]
 
     render(
       <GhostGrid
@@ -95,9 +91,7 @@ describe('GhostGrid Drag and Drop', () => {
   })
 
   it('should not throw when useGhostGridDrag is used inside GhostGrid', async () => {
-    const initialNodes = [
-      { id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } },
-    ]
+    const initialNodes = [{ id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } }]
 
     // This should not throw an error
     expect(() => {
@@ -115,9 +109,7 @@ describe('GhostGrid Drag and Drop', () => {
   })
 
   it('should pass drag handlers to rendered items', async () => {
-    const initialNodes = [
-      { id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } },
-    ]
+    const initialNodes = [{ id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } }]
 
     render(
       <GhostGrid
@@ -143,9 +135,7 @@ describe('GhostGrid Drag and Drop', () => {
 
   it('should complete drag lifecycle (down, move, up)', async () => {
     const onStateChange = vi.fn()
-    const initialNodes = [
-      { id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } },
-    ]
+    const initialNodes = [{ id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } }]
 
     render(
       <GhostGrid

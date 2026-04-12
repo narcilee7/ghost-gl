@@ -5,7 +5,7 @@ import {
   commitInteraction,
   createInteractionSession,
   previewInteraction,
-} from './interaction'
+} from '.'
 
 describe('layout interaction session', () => {
   it('previews from base nodes and commits the preview transaction', () => {

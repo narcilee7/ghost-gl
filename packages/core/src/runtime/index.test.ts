@@ -5,7 +5,7 @@ import {
   createInteractionSession,
   LayoutRuntime,
   previewInteraction,
-} from './index'
+} from '../index'
 
 describe('LayoutRuntime', () => {
   const metrics = {
