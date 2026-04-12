@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { assertLayoutNodes, validateNode, validatePlacement, validateSize } from './constraints'
+import { assertLayoutNodes, validateNode, validatePlacement, validateSize } from '.'
 
 describe('layout constraints', () => {
   it('accepts valid nodes', () => {

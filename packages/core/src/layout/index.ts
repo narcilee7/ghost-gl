@@ -1,6 +1,6 @@
 import RBush from 'rbush'
 
-import type { LayoutNode, LayoutPolicy } from './types'
+import type { LayoutNode, LayoutPolicy } from '../types'
 
 export type CompactDirection = 'up' | 'down'
 
@@ -19,16 +19,16 @@ export interface NodeSize {
   h: number
 }
 
-export interface LayoutMutationContext<TData = unknown> {
-  itemById: Map<string, SpatialItem<TData>>
-  nodes: LayoutNode<TData>[]
+export interface LayoutMutationContext<T = unknown> {
+  itemById: Map<string, SpatialItem<T>>
+  nodes: LayoutNode<T>[]
   policy: LayoutPolicy
-  tree: RBush<SpatialItem<TData>>
+  tree: RBush<SpatialItem<T>>
 }
 
-export function collides<TData = unknown>(
-  a: Pick<LayoutNode<TData>, 'id' | 'x' | 'y' | 'w' | 'h'>,
-  b: Pick<LayoutNode<TData>, 'id' | 'x' | 'y' | 'w' | 'h'>
+export function collides<T = unknown>(
+  a: Pick<LayoutNode<T>, 'id' | 'x' | 'y' | 'w' | 'h'>,
+  b: Pick<LayoutNode<T>, 'id' | 'x' | 'y' | 'w' | 'h'>
 ): boolean {
   if (a.id === b.id) {
     return false
@@ -37,19 +37,19 @@ export function collides<TData = unknown>(
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
 }
 
-export function moveNode<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function moveNode<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   id: string,
   nextPlacement: NodePlacement
-): LayoutNode<TData>[] {
+): LayoutNode<T>[] {
   const context = createLayoutMutationContext(nodes)
   moveNodeWithContext(context, id, nextPlacement)
 
   return finalizeLayoutMutation(context)
 }
 
-export function moveNodeWithContext<TData = unknown>(
-  context: LayoutMutationContext<TData>,
+export function moveNodeWithContext<T = unknown>(
+  context: LayoutMutationContext<T>,
   id: string,
   nextPlacement: NodePlacement
 ): void {
@@ -59,19 +59,19 @@ export function moveNodeWithContext<TData = unknown>(
   })
 }
 
-export function resizeNode<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function resizeNode<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   id: string,
   nextSize: NodeSize
-): LayoutNode<TData>[] {
+): LayoutNode<T>[] {
   const context = createLayoutMutationContext(nodes)
   resizeNodeWithContext(context, id, nextSize)
 
   return finalizeLayoutMutation(context)
 }
 
-export function resizeNodeWithContext<TData = unknown>(
-  context: LayoutMutationContext<TData>,
+export function resizeNodeWithContext<T = unknown>(
+  context: LayoutMutationContext<T>,
   id: string,
   nextSize: NodeSize
 ): void {
@@ -81,10 +81,10 @@ export function resizeNodeWithContext<TData = unknown>(
   })
 }
 
-export function createLayoutMutationContext<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function createLayoutMutationContext<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   policy: LayoutPolicy = {}
-): LayoutMutationContext<TData> {
+): LayoutMutationContext<T> {
   const nextNodes = nodes.map((node) => ({ ...node }))
   const { itemById, tree } = createSpatialIndex(nextNodes)
 
@@ -96,9 +96,9 @@ export function createLayoutMutationContext<TData = unknown>(
   }
 }
 
-export function finalizeLayoutMutation<TData = unknown>(
-  context: LayoutMutationContext<TData>
-): LayoutNode<TData>[] {
+export function finalizeLayoutMutation<T = unknown>(
+  context: LayoutMutationContext<T>
+): LayoutNode<T>[] {
   return sortNodes(context.nodes)
 }
 
@@ -115,11 +115,11 @@ export function finalizeLayoutMutation<TData = unknown>(
  * @param options - Compact options (direction, maxColumns)
  * @returns Compacted layout nodes
  */
-export function compactLayout<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function compactLayout<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   options: CompactOptions = {},
   policy: LayoutPolicy = {}
-): LayoutNode<TData>[] {
+): LayoutNode<T>[] {
   const direction = options.direction ?? 'up'
 
   if (direction === 'down') {
@@ -151,7 +151,7 @@ export function compactLayout<TData = unknown>(
 /**
  * Compact a single column by moving nodes upward.
  */
-function compactColumn<TData = unknown>(context: LayoutMutationContext<TData>, colX: number): void {
+function compactColumn<T = unknown>(context: LayoutMutationContext<T>, colX: number): void {
   // Get all nodes that overlap with this column
   const columnNodes = context.nodes
     .filter((node) => node.x <= colX && node.x + node.w > colX)
@@ -196,11 +196,11 @@ function compactColumn<TData = unknown>(context: LayoutMutationContext<TData>, c
 /**
  * Find nodes that would collide if 'node' were moved to targetY.
  */
-function findCollisionsAt<TData = unknown>(
-  context: LayoutMutationContext<TData>,
-  node: LayoutNode<TData>,
+function findCollisionsAt<T = unknown>(
+  context: LayoutMutationContext<T>,
+  node: LayoutNode<T>,
   targetY: number
-): LayoutNode<TData>[] {
+): LayoutNode<T>[] {
   const tempNode = { ...node, y: targetY }
 
   return context.nodes.filter((other) => {
@@ -209,10 +209,10 @@ function findCollisionsAt<TData = unknown>(
   })
 }
 
-function mutateNode<TData = unknown>(
-  context: LayoutMutationContext<TData>,
+function mutateNode<T = unknown>(
+  context: LayoutMutationContext<T>,
   id: string,
-  mutate: (node: LayoutNode<TData>) => void
+  mutate: (node: LayoutNode<T>) => void
 ): void {
   const targetItem = context.itemById.get(id)
 
@@ -225,9 +225,9 @@ function mutateNode<TData = unknown>(
   resolveNodeCollisions(context.tree, context.itemById, targetItem.id, context.policy)
 }
 
-function resolveNodeCollisions<TData = unknown>(
-  tree: RBush<SpatialItem<TData>>,
-  itemById: Map<string, SpatialItem<TData>>,
+function resolveNodeCollisions<T = unknown>(
+  tree: RBush<SpatialItem<T>>,
+  itemById: Map<string, SpatialItem<T>>,
   rootId: string,
   policy: LayoutPolicy = {}
 ): void {
@@ -315,28 +315,28 @@ function resolveNodeCollisions<TData = unknown>(
   }
 }
 
-interface SpatialItem<TData = unknown> {
+interface SpatialItem<T = unknown> {
   id: string
   maxX: number
   maxY: number
   minX: number
   minY: number
-  node: LayoutNode<TData>
+  node: LayoutNode<T>
 }
 
-function createSpatialIndex<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[]
+function createSpatialIndex<T = unknown>(
+  nodes: readonly LayoutNode<T>[]
 ): {
-  itemById: Map<string, SpatialItem<TData>>
-  tree: RBush<SpatialItem<TData>>
+  itemById: Map<string, SpatialItem<T>>
+  tree: RBush<SpatialItem<T>>
 } {
-  const itemById = new Map<string, SpatialItem<TData>>()
+  const itemById = new Map<string, SpatialItem<T>>()
   const items = nodes.map((node) => {
     const item = toSpatialItem(node)
     itemById.set(item.id, item)
     return item
   })
-  const tree = new RBush<SpatialItem<TData>>()
+  const tree = new RBush<SpatialItem<T>>()
   tree.load(items)
 
   return {
@@ -345,17 +345,15 @@ function createSpatialIndex<TData = unknown>(
   }
 }
 
-function sortNodes<TData = unknown>(nodes: readonly LayoutNode<TData>[]): LayoutNode<TData>[] {
+function sortNodes<T = unknown>(nodes: readonly LayoutNode<T>[]): LayoutNode<T>[] {
   return [...nodes].sort(compareNodes)
 }
 
-function sortSpatialItems<TData = unknown>(
-  items: readonly SpatialItem<TData>[]
-): SpatialItem<TData>[] {
+function sortSpatialItems<T = unknown>(items: readonly SpatialItem<T>[]): SpatialItem<T>[] {
   return [...items].sort((a, b) => compareNodes(a.node, b.node))
 }
 
-function compareNodes<TData = unknown>(a: LayoutNode<TData>, b: LayoutNode<TData>): number {
+function compareNodes<T = unknown>(a: LayoutNode<T>, b: LayoutNode<T>): number {
   if (a.y !== b.y) {
     return a.y - b.y
   }
@@ -367,10 +365,7 @@ function compareNodes<TData = unknown>(a: LayoutNode<TData>, b: LayoutNode<TData
   return a.id.localeCompare(b.id)
 }
 
-function syncSpatialItem<TData = unknown>(
-  tree: RBush<SpatialItem<TData>>,
-  item: SpatialItem<TData>
-): void {
+function syncSpatialItem<T = unknown>(tree: RBush<SpatialItem<T>>, item: SpatialItem<T>): void {
   tree.remove(item)
   item.minX = item.node.x
   item.minY = item.node.y
@@ -379,7 +374,7 @@ function syncSpatialItem<TData = unknown>(
   tree.insert(item)
 }
 
-function toSpatialItem<TData = unknown>(node: LayoutNode<TData>): SpatialItem<TData> {
+function toSpatialItem<T = unknown>(node: LayoutNode<T>): SpatialItem<T> {
   return {
     id: node.id,
     maxX: node.x + node.w,

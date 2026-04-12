@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyLayoutTransaction } from './transactions'
+import { applyLayoutTransaction } from '.'
 
 describe('layout transactions', () => {
   it('commits multiple operations atomically and emits inverse operations', () => {

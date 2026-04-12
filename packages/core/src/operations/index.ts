@@ -1,5 +1,5 @@
-import type { LayoutConstraints, LayoutConstraintViolation } from './constraints'
-import { validateNode, validatePlacement, validateSize } from './constraints'
+import type { LayoutConstraints, LayoutConstraintViolation } from '../constraints'
+import { validateNode, validatePlacement, validateSize } from '../constraints'
 import {
   createLayoutMutationContext,
   finalizeLayoutMutation,
@@ -10,10 +10,10 @@ import {
   type NodeSize,
   resizeNode as resizeLayoutNode,
   resizeNodeWithContext,
-} from './layout'
-import type { LayoutNode } from './types'
+} from '../layout'
+import type { LayoutNode } from '../types'
 
-export type LayoutOperation<TData = unknown> =
+export type LayoutOperation<T = unknown> =
   | {
       id: string
       placement: NodePlacement
@@ -25,7 +25,7 @@ export type LayoutOperation<TData = unknown> =
       type: 'resize'
     }
   | {
-      node: LayoutNode<TData>
+      node: LayoutNode<T>
       type: 'upsert'
     }
   | {
@@ -33,32 +33,32 @@ export type LayoutOperation<TData = unknown> =
       type: 'remove'
     }
   | {
-      nodes: readonly LayoutNode<TData>[]
+      nodes: readonly LayoutNode<T>[]
       type: 'replace'
     }
 
-export interface LayoutOperationOptions<TData = unknown> {
+export interface LayoutOperationOptions<T = unknown> {
   constraints?: LayoutConstraints
-  mutationContext?: LayoutMutationContext<TData>
+  mutationContext?: LayoutMutationContext<T>
 }
 
 export type LayoutOperationRejectionReason = 'constraint_violation' | 'node_not_found'
 export type LayoutOperationStatus = 'applied' | 'rejected'
 
-export interface LayoutOperationResult<TData = unknown> {
+export interface LayoutOperationResult<T = unknown> {
   changed: boolean
-  nextNodes: readonly LayoutNode<TData>[]
-  operation: LayoutOperation<TData>
+  nextNodes: readonly LayoutNode<T>[]
+  operation: LayoutOperation<T>
   rejectionReason?: LayoutOperationRejectionReason
   status: LayoutOperationStatus
   violation?: LayoutConstraintViolation
 }
 
-export function applyLayoutOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: LayoutOperation<TData>,
-  options: LayoutOperationOptions<TData> = {}
-): LayoutOperationResult<TData> {
+export function applyLayoutOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: LayoutOperation<T>,
+  options: LayoutOperationOptions<T> = {}
+): LayoutOperationResult<T> {
   switch (operation.type) {
     case 'move':
       return applyMoveOperation(nodes, operation, options)
@@ -73,11 +73,11 @@ export function applyLayoutOperation<TData = unknown>(
   }
 }
 
-function applyMoveOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'move' }>,
-  options: LayoutOperationOptions<TData>
-): LayoutOperationResult<TData> {
+function applyMoveOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'move' }>,
+  options: LayoutOperationOptions<T>
+): LayoutOperationResult<T> {
   const node = nodes.find((candidate) => candidate.id === operation.id)
 
   if (node == null) {
@@ -93,10 +93,10 @@ function applyMoveOperation<TData = unknown>(
   return createAppliedResult(nodes, applyMoveLayout(nodes, operation, options), operation)
 }
 
-function applyRemoveOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'remove' }>
-): LayoutOperationResult<TData> {
+function applyRemoveOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'remove' }>
+): LayoutOperationResult<T> {
   const index = nodes.findIndex((node) => node.id === operation.id)
 
   if (index === -1) {
@@ -110,11 +110,11 @@ function applyRemoveOperation<TData = unknown>(
   )
 }
 
-function applyReplaceOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'replace' }>,
-  options: LayoutOperationOptions<TData>
-): LayoutOperationResult<TData> {
+function applyReplaceOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'replace' }>,
+  options: LayoutOperationOptions<T>
+): LayoutOperationResult<T> {
   const nextNodes = [...operation.nodes]
   const violation = findConstraintViolation(nextNodes, options.constraints)
 
@@ -125,11 +125,11 @@ function applyReplaceOperation<TData = unknown>(
   return createAppliedResult(nodes, nextNodes, operation)
 }
 
-function applyResizeOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'resize' }>,
-  options: LayoutOperationOptions<TData>
-): LayoutOperationResult<TData> {
+function applyResizeOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'resize' }>,
+  options: LayoutOperationOptions<T>
+): LayoutOperationResult<T> {
   const node = nodes.find((candidate) => candidate.id === operation.id)
 
   if (node == null) {
@@ -145,11 +145,11 @@ function applyResizeOperation<TData = unknown>(
   return createAppliedResult(nodes, applyResizeLayout(nodes, operation, options), operation)
 }
 
-function applyUpsertOperation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'upsert' }>,
-  options: LayoutOperationOptions<TData>
-): LayoutOperationResult<TData> {
+function applyUpsertOperation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'upsert' }>,
+  options: LayoutOperationOptions<T>
+): LayoutOperationResult<T> {
   const violation = validateNode(operation.node, options.constraints)
 
   if (violation != null) {
@@ -168,11 +168,11 @@ function applyUpsertOperation<TData = unknown>(
   return createAppliedResult(nodes, nextNodes, operation)
 }
 
-function createAppliedResult<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  nextNodes: readonly LayoutNode<TData>[],
-  operation: LayoutOperation<TData>
-): LayoutOperationResult<TData> {
+function createAppliedResult<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  nextNodes: readonly LayoutNode<T>[],
+  operation: LayoutOperation<T>
+): LayoutOperationResult<T> {
   return {
     changed: !areNodeListsEqual(nodes, nextNodes),
     nextNodes,
@@ -181,13 +181,13 @@ function createAppliedResult<TData = unknown>(
   }
 }
 
-function createRejectedResult<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: LayoutOperation<TData>,
+function createRejectedResult<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: LayoutOperation<T>,
   rejectionReason: LayoutOperationRejectionReason,
   violation?: LayoutConstraintViolation
-): LayoutOperationResult<TData> {
-  const result: LayoutOperationResult<TData> = {
+): LayoutOperationResult<T> {
+  const result: LayoutOperationResult<T> = {
     changed: false,
     nextNodes: nodes,
     operation,
@@ -202,9 +202,9 @@ function createRejectedResult<TData = unknown>(
   return result
 }
 
-function areNodeListsEqual<TData = unknown>(
-  a: readonly LayoutNode<TData>[],
-  b: readonly LayoutNode<TData>[]
+function areNodeListsEqual<T = unknown>(
+  a: readonly LayoutNode<T>[],
+  b: readonly LayoutNode<T>[]
 ): boolean {
   if (a.length !== b.length) {
     return false
@@ -234,8 +234,8 @@ function areNodeListsEqual<TData = unknown>(
   return true
 }
 
-function findConstraintViolation<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+function findConstraintViolation<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   constraints?: LayoutConstraints
 ): LayoutConstraintViolation | undefined {
   for (const node of nodes) {
@@ -249,11 +249,11 @@ function findConstraintViolation<TData = unknown>(
   return undefined
 }
 
-function applyMoveLayout<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'move' }>,
-  options: LayoutOperationOptions<TData>
-): readonly LayoutNode<TData>[] {
+function applyMoveLayout<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'move' }>,
+  options: LayoutOperationOptions<T>
+): readonly LayoutNode<T>[] {
   if (options.mutationContext != null) {
     moveNodeWithContext(options.mutationContext, operation.id, operation.placement)
 
@@ -263,11 +263,11 @@ function applyMoveLayout<TData = unknown>(
   return moveLayoutNode(nodes, operation.id, operation.placement)
 }
 
-function applyResizeLayout<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  operation: Extract<LayoutOperation<TData>, { type: 'resize' }>,
-  options: LayoutOperationOptions<TData>
-): readonly LayoutNode<TData>[] {
+function applyResizeLayout<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  operation: Extract<LayoutOperation<T>, { type: 'resize' }>,
+  options: LayoutOperationOptions<T>
+): readonly LayoutNode<T>[] {
   if (options.mutationContext != null) {
     resizeNodeWithContext(options.mutationContext, operation.id, operation.size)
 
@@ -277,20 +277,18 @@ function applyResizeLayout<TData = unknown>(
   return resizeLayoutNode(nodes, operation.id, operation.size)
 }
 
-export function createOperationMutationContext<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[]
-): LayoutMutationContext<TData> {
+export function createOperationMutationContext<T = unknown>(
+  nodes: readonly LayoutNode<T>[]
+): LayoutMutationContext<T> {
   return createLayoutMutationContext(nodes)
 }
 
-export function finalizeOperationMutationContext<TData = unknown>(
-  context: LayoutMutationContext<TData>
-): LayoutNode<TData>[] {
+export function finalizeOperationMutationContext<T = unknown>(
+  context: LayoutMutationContext<T>
+): LayoutNode<T>[] {
   return finalizeLayoutMutation(context)
 }
 
-export function shouldReuseMutationContext<TData = unknown>(
-  operation: LayoutOperation<TData>
-): boolean {
+export function shouldReuseMutationContext<T = unknown>(operation: LayoutOperation<T>): boolean {
   return operation.type === 'move' || operation.type === 'resize'
 }

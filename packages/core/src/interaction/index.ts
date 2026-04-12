@@ -1,43 +1,33 @@
-import type { LayoutOperation } from './operations'
+import type { LayoutOperation } from '../operations'
 import {
   applyLayoutTransaction,
   type LayoutTransactionOptions,
   type LayoutTransactionResult,
-} from './transactions'
-import type { LayoutNode } from './types'
+} from '../transactions'
+import type { LayoutNode } from '../types'
+import type {
+  LayoutInteractionCommitResult,
+  LayoutInteractionKind,
+  LayoutInteractionPreviewResult,
+  LayoutInteractionSession,
+} from './types'
 
-export type LayoutInteractionKind = 'drag' | 'resize' | 'custom'
-export type LayoutInteractionStatus = 'active' | 'committed' | 'cancelled'
+export type {
+  LayoutInteractionCommitResult,
+  LayoutInteractionKind,
+  LayoutInteractionPreviewResult,
+  LayoutInteractionSession,
+  LayoutInteractionStatus,
+} from './types'
 
-export interface LayoutInteractionSession<TData = unknown> {
-  baseNodes: readonly LayoutNode<TData>[]
-  currentNodes: readonly LayoutNode<TData>[]
+export function createInteractionSession<T = unknown>(input: {
   id: string
   kind: LayoutInteractionKind
-  previewOperations: readonly LayoutOperation<TData>[]
-  previewResult?: LayoutTransactionResult<TData>
-  status: LayoutInteractionStatus
+  nodes: readonly LayoutNode<T>[]
   targetId?: string
-}
-
-export interface LayoutInteractionPreviewResult<TData = unknown> {
-  session: LayoutInteractionSession<TData>
-  transaction: LayoutTransactionResult<TData>
-}
-
-export interface LayoutInteractionCommitResult<TData = unknown> {
-  session: LayoutInteractionSession<TData>
-  transaction?: LayoutTransactionResult<TData>
-}
-
-export function createInteractionSession<TData = unknown>(input: {
-  id: string
-  kind: LayoutInteractionKind
-  nodes: readonly LayoutNode<TData>[]
-  targetId?: string
-}): LayoutInteractionSession<TData> {
+}): LayoutInteractionSession<T> {
   const clonedNodes = cloneNodes(input.nodes)
-  const session: LayoutInteractionSession<TData> = {
+  const session: LayoutInteractionSession<T> = {
     baseNodes: clonedNodes,
     currentNodes: clonedNodes,
     id: input.id,
@@ -53,11 +43,11 @@ export function createInteractionSession<TData = unknown>(input: {
   return session
 }
 
-export function previewInteraction<TData = unknown>(
-  session: LayoutInteractionSession<TData>,
-  operations: readonly LayoutOperation<TData>[],
-  options: LayoutTransactionOptions<TData> = {}
-): LayoutInteractionPreviewResult<TData> {
+export function previewInteraction<T = unknown>(
+  session: LayoutInteractionSession<T>,
+  operations: readonly LayoutOperation<T>[],
+  options: LayoutTransactionOptions<T> = {}
+): LayoutInteractionPreviewResult<T> {
   if (session.status !== 'active') {
     return {
       session,
@@ -90,9 +80,9 @@ export function previewInteraction<TData = unknown>(
   }
 }
 
-export function commitInteraction<TData = unknown>(
-  session: LayoutInteractionSession<TData>
-): LayoutInteractionCommitResult<TData> {
+export function commitInteraction<T = unknown>(
+  session: LayoutInteractionSession<T>
+): LayoutInteractionCommitResult<T> {
   if (session.status !== 'active') {
     return withOptionalTransaction({ session }, session.previewResult)
   }
@@ -108,9 +98,9 @@ export function commitInteraction<TData = unknown>(
   )
 }
 
-export function cancelInteraction<TData = unknown>(
-  session: LayoutInteractionSession<TData>
-): LayoutInteractionSession<TData> {
+export function cancelInteraction<T = unknown>(
+  session: LayoutInteractionSession<T>
+): LayoutInteractionSession<T> {
   if (session.status !== 'active') {
     return session
   }
@@ -125,12 +115,12 @@ export function cancelInteraction<TData = unknown>(
   }
 }
 
-function withOptionalTransaction<TData = unknown>(
+function withOptionalTransaction<T = unknown>(
   result: {
-    session: LayoutInteractionSession<TData>
+    session: LayoutInteractionSession<T>
   },
-  transaction: LayoutTransactionResult<TData> | undefined
-): LayoutInteractionCommitResult<TData> {
+  transaction: LayoutTransactionResult<T> | undefined
+): LayoutInteractionCommitResult<T> {
   if (transaction === undefined) {
     return result
   }
@@ -141,19 +131,17 @@ function withOptionalTransaction<TData = unknown>(
   }
 }
 
-function cloneNodes<TData = unknown>(nodes: readonly LayoutNode<TData>[]): LayoutNode<TData>[] {
+function cloneNodes<T = unknown>(nodes: readonly LayoutNode<T>[]): LayoutNode<T>[] {
   return nodes.map((node) => ({ ...node }))
 }
 
-function cloneOperations<TData = unknown>(
-  operations: readonly LayoutOperation<TData>[]
-): LayoutOperation<TData>[] {
+function cloneOperations<T = unknown>(
+  operations: readonly LayoutOperation<T>[]
+): LayoutOperation<T>[] {
   return operations.map(cloneOperation)
 }
 
-function cloneOperation<TData = unknown>(
-  operation: LayoutOperation<TData>
-): LayoutOperation<TData> {
+function cloneOperation<T = unknown>(operation: LayoutOperation<T>): LayoutOperation<T> {
   switch (operation.type) {
     case 'move':
       return {
@@ -185,9 +173,9 @@ function cloneOperation<TData = unknown>(
   }
 }
 
-function createRejectedSessionTransaction<TData = unknown>(
-  session: LayoutInteractionSession<TData>
-): LayoutTransactionResult<TData> {
+function createRejectedSessionTransaction<T = unknown>(
+  session: LayoutInteractionSession<T>
+): LayoutTransactionResult<T> {
   return {
     changed: false,
     committed: false,

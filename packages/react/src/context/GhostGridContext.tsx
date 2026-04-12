@@ -13,31 +13,31 @@ export const GhostGridContext = createContext<GhostGridContextValue<unknown> | n
  * Hook to access the GhostGrid context
  * @throws if used outside of GhostGrid provider
  */
-export function useGhostGridContext<TData = unknown>(): GhostGridContextValue<TData> {
+export function useGhostGridContext<T = unknown>(): GhostGridContextValue<T> {
   const context = useContext(GhostGridContext)
 
   if (context === null) {
     throw new Error('useGhostGridContext must be used within a GhostGrid component')
   }
 
-  return context as GhostGridContextValue<TData>
+  return context as GhostGridContextValue<T>
 }
 
 /**
  * Hook to access the runtime controller
  * Returns null if not within a GhostGrid
  */
-export function useController<TData = unknown>(): RuntimeController<TData> | null {
+export function useController<T = unknown>(): RuntimeController<T> | null {
   const context = useContext(GhostGridContext)
-  return (context?.controller as RuntimeController<TData> | null) ?? null
+  return (context?.controller as RuntimeController<T> | null) ?? null
 }
 
 /**
  * Hook to access the current grid state
  */
-export function useGridState<TData = unknown>(): RuntimeControllerState<TData> | null {
+export function useGridState<T = unknown>(): RuntimeControllerState<T> | null {
   const context = useContext(GhostGridContext)
-  return (context?.state as RuntimeControllerState<TData> | null) ?? null
+  return (context?.state as RuntimeControllerState<T> | null) ?? null
 }
 
 /**
@@ -60,12 +60,12 @@ export function useViewport(): Rect | null {
  * Provider component for GhostGridContext
  * Internal use only
  */
-export function GhostGridProvider<TData = unknown>({
+export function GhostGridProvider<T = unknown>({
   children,
   value,
 }: {
   children: React.ReactNode
-  value: GhostGridContextValue<TData>
+  value: GhostGridContextValue<T>
 }): JSX.Element {
   // Memoize context value to prevent unnecessary re-renders
   const memoizedValue = useMemo(() => value as GhostGridContextValue<unknown>, [value])

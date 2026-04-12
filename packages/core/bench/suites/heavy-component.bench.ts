@@ -28,7 +28,7 @@ interface TraditionalResult {
  * Simulate traditional approach: all visible nodes fully mounted.
  */
 function simulateTraditionalApproach(
-  nodes: readonly LayoutNode[],
+  _nodes: readonly LayoutNode[],
   visibleCount: number,
   config: HeavyComponentConfig
 ): TraditionalResult {

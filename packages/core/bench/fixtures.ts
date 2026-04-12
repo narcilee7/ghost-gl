@@ -273,7 +273,7 @@ function inferNodeKind(index: number): BenchmarkNodeData['kind'] {
   return 'chart'
 }
 
-function inferHeavyConfig(tier: ScaleTier, itemCount: number): HeavyComponentConfig {
+function inferHeavyConfig(tier: ScaleTier, _itemCount: number): HeavyComponentConfig {
   const configs: Record<ScaleTier, HeavyComponentConfig> = {
     small: { mountCost: 10, unmountCost: 5, memoryMB: 1, type: 'mixed' },
     medium: { mountCost: 20, unmountCost: 10, memoryMB: 2, type: 'mixed' },

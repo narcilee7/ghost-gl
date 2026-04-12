@@ -50,9 +50,9 @@ import type { UseGhostGridOptions, UseGhostGridReturn } from '../types'
  * }
  * ```
  */
-export function useGhostGrid<TData = unknown>(
-  options: UseGhostGridOptions<TData> = {}
-): UseGhostGridReturn<TData> {
+export function useGhostGrid<T = unknown>(
+  options: UseGhostGridOptions<T> = {}
+): UseGhostGridReturn<T> {
   const {
     initialNodes = [],
     columns,
@@ -68,48 +68,42 @@ export function useGhostGrid<TData = unknown>(
   } = options
 
   // Refs for mutable values
-  const runtimeRef = useRef<LayoutRuntime<TData> | null>(null)
-  const controllerRef = useRef<RuntimeController<TData> | null>(null)
+  const runtimeRef = useRef<LayoutRuntime<T> | null>(null)
+  const controllerRef = useRef<RuntimeController<T> | null>(null)
   const unmountingRef = useRef(false)
   const viewportRef = useRef<Rect | null>(null)
 
   // State
-  const [state, setState] = useState<RuntimeControllerState<TData> | null>(null)
+  const [state, setState] = useState<RuntimeControllerState<T> | null>(null)
   const [isReady, setIsReady] = useState(false)
-  const [materialized, setMaterialized] = useState<MaterializedNode<TData>[]>([])
+  const [materialized, setMaterialized] = useState<MaterializedNode<T>[]>([])
   const [containerWidth, setContainerWidth] = useState(0)
 
   // Memoize metrics
-  const metrics: GridMetrics = useMemo(
-    () => {
-      // If we don't have containerWidth yet, fallback to percentage approximation
-      // This happens on initial render before resize observer fires
-      const cols = columns || 12
-      const availableWidth = containerWidth > 0 
-        ? containerWidth - paddingLeft * 2 - (cols - 1) * gapX
-        : 0
-      
-      const columnWidth = containerWidth > 0 
-        ? availableWidth / cols 
-        : 100 / cols
-        
-      return {
-        columnWidth,
-        rowHeight,
-        gapX,
-        gapY,
-        paddingLeft,
-        paddingTop,
-      }
-    },
-    [columns, rowHeight, gapX, gapY, paddingLeft, paddingTop, containerWidth]
-  )
+  const metrics: GridMetrics = useMemo(() => {
+    // If we don't have containerWidth yet, fallback to percentage approximation
+    // This happens on initial render before resize observer fires
+    const cols = columns || 12
+    const availableWidth =
+      containerWidth > 0 ? containerWidth - paddingLeft * 2 - (cols - 1) * gapX : 0
+
+    const columnWidth = containerWidth > 0 ? availableWidth / cols : 100 / cols
+
+    return {
+      columnWidth,
+      rowHeight,
+      gapX,
+      gapY,
+      paddingLeft,
+      paddingTop,
+    }
+  }, [columns, rowHeight, gapX, gapY, paddingLeft, paddingTop, containerWidth])
 
   // Update controller metrics when metrics change
   useEffect(() => {
     if (controllerRef.current && isReady) {
       controllerRef.current.setMetrics(metrics)
-      
+
       // Also trigger a re-materialization plan with new bounds
       if (viewportRef.current) {
         const plan = controllerRef.current.planMaterialization({
@@ -143,7 +137,7 @@ export function useGhostGrid<TData = unknown>(
     const layoutOptions: {
       constraints?: LayoutConstraints
       metrics: GridMetrics
-      nodes?: readonly LayoutNode<TData>[]
+      nodes?: readonly LayoutNode<T>[]
     } = {
       metrics,
       nodes: initialNodes,

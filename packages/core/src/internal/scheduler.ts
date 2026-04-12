@@ -153,11 +153,11 @@ export interface PlanMaterializationInput {
   trace?: boolean
 }
 
-export interface PlanMaterializationFromKernelInput<TData = unknown> {
+export interface PlanMaterializationFromKernelInput<T = unknown> {
   activeIds?: ReadonlySet<string>
   config?: Partial<SchedulerConfig>
   controller?: SchedulerController
-  kernel: SpatialKernel<TData>
+  kernel: SpatialKernel<T>
   modeById: ReadonlyMap<string, MaterializationMode>
   timestamp: number
   viewport: SchedulerViewport
@@ -529,8 +529,8 @@ function decideNodeModeRaw(
 /**
  * Legacy function for backward compatibility.
  */
-export function planMaterializationFromKernel<TData = unknown>(
-  input: PlanMaterializationFromKernelInput<TData>
+export function planMaterializationFromKernel<T = unknown>(
+  input: PlanMaterializationFromKernelInput<T>
 ): SchedulerPlan {
   // Convert kernel items to candidates
   const allItems = input.kernel.getAll()

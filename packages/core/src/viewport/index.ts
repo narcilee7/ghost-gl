@@ -1,6 +1,6 @@
-import { expandRect, intersectsRect, projectNodeToRect, unprojectRectToGrid } from './geometry'
-import type { SpatialKernel } from './spatial'
-import type { GridMetrics, LayoutNode, LayoutRect, Rect } from './types'
+import { expandRect, intersectsRect, projectNodeToRect, unprojectRectToGrid } from '../geometry'
+import type { SpatialKernel } from '../spatial'
+import type { GridMetrics, LayoutNode, LayoutRect, Rect } from '../types'
 
 export interface ViewportQueryOptions {
   overscanX?: number
@@ -11,12 +11,12 @@ export interface ViewportQueryOptions {
  * Query viewport using linear scan (fallback for simple cases)
  * @deprecated Use SpatialKernel for O(log n) queries
  */
-export function queryViewport<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
+export function queryViewport<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
   viewport: Rect,
   metrics: GridMetrics,
   options: ViewportQueryOptions = {}
-): LayoutRect<TData>[] {
+): LayoutRect<T>[] {
   const target = expandRect(viewport, options.overscanX ?? 0, options.overscanY ?? 0)
 
   return nodes
@@ -30,12 +30,12 @@ export function queryViewport<TData = unknown>(
  * Note: This converts the pixel viewport to grid coordinates for the spatial query,
  * then converts results back to pixel coordinates.
  */
-export function queryViewportWithKernel<TData = unknown>(
-  kernel: SpatialKernel<TData>,
+export function queryViewportWithKernel<T = unknown>(
+  kernel: SpatialKernel<T>,
   viewport: Rect,
   metrics: GridMetrics,
   options: ViewportQueryOptions = {}
-): LayoutRect<TData>[] {
+): LayoutRect<T>[] {
   // Convert pixel viewport to grid coordinates for spatial query
   const gridViewport = unprojectRectToGrid(viewport, metrics)
   const gridOverscanX = options.overscanX

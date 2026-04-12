@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyLayoutOperation } from './operations'
+import { applyLayoutOperation } from '.'
 
 describe('layout operations', () => {
   it('applies move and resize operations through a pure dispatch model', () => {

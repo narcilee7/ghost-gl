@@ -1,38 +1,38 @@
-import type { LayoutOperation } from './operations'
+import type { LayoutOperation } from '../operations'
 import {
   applyLayoutTransaction,
   type LayoutTransactionOptions,
   type LayoutTransactionResult,
-} from './transactions'
-import type { LayoutNode } from './types'
+} from '../transactions'
+import type { LayoutNode } from '../types'
 
-export interface LayoutHistoryEntry<TData = unknown> {
-  redoOperations: readonly LayoutOperation<TData>[]
-  undoOperations: readonly LayoutOperation<TData>[]
+export interface LayoutHistoryEntry<T = unknown> {
+  redoOperations: readonly LayoutOperation<T>[]
+  undoOperations: readonly LayoutOperation<T>[]
 }
 
-export interface LayoutHistoryState<TData = unknown> {
-  future: readonly LayoutHistoryEntry<TData>[]
-  past: readonly LayoutHistoryEntry<TData>[]
+export interface LayoutHistoryState<T = unknown> {
+  future: readonly LayoutHistoryEntry<T>[]
+  past: readonly LayoutHistoryEntry<T>[]
 }
 
-export interface LayoutHistoryNavigationResult<TData = unknown> {
+export interface LayoutHistoryNavigationResult<T = unknown> {
   changed: boolean
-  history: LayoutHistoryState<TData>
-  transaction?: LayoutTransactionResult<TData>
+  history: LayoutHistoryState<T>
+  transaction?: LayoutTransactionResult<T>
 }
 
-export function createLayoutHistory<TData = unknown>(): LayoutHistoryState<TData> {
+export function createLayoutHistory<T = unknown>(): LayoutHistoryState<T> {
   return {
     future: [],
     past: [],
   }
 }
 
-export function recordLayoutTransaction<TData = unknown>(
-  history: LayoutHistoryState<TData>,
-  transaction: LayoutTransactionResult<TData>
-): LayoutHistoryState<TData> {
+export function recordLayoutTransaction<T = unknown>(
+  history: LayoutHistoryState<T>,
+  transaction: LayoutTransactionResult<T>
+): LayoutHistoryState<T> {
   if (!transaction.committed || !transaction.changed) {
     return history
   }
@@ -49,11 +49,11 @@ export function recordLayoutTransaction<TData = unknown>(
   }
 }
 
-export function redoLayoutHistory<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  history: LayoutHistoryState<TData>,
-  options: LayoutTransactionOptions<TData> = {}
-): LayoutHistoryNavigationResult<TData> {
+export function redoLayoutHistory<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  history: LayoutHistoryState<T>,
+  options: LayoutTransactionOptions<T> = {}
+): LayoutHistoryNavigationResult<T> {
   const entry = history.future.at(-1)
 
   if (entry == null) {
@@ -83,11 +83,11 @@ export function redoLayoutHistory<TData = unknown>(
   }
 }
 
-export function undoLayoutHistory<TData = unknown>(
-  nodes: readonly LayoutNode<TData>[],
-  history: LayoutHistoryState<TData>,
-  options: LayoutTransactionOptions<TData> = {}
-): LayoutHistoryNavigationResult<TData> {
+export function undoLayoutHistory<T = unknown>(
+  nodes: readonly LayoutNode<T>[],
+  history: LayoutHistoryState<T>,
+  options: LayoutTransactionOptions<T> = {}
+): LayoutHistoryNavigationResult<T> {
   const entry = history.past.at(-1)
 
   if (entry == null) {
@@ -117,15 +117,13 @@ export function undoLayoutHistory<TData = unknown>(
   }
 }
 
-function cloneOperations<TData = unknown>(
-  operations: readonly LayoutOperation<TData>[]
-): LayoutOperation<TData>[] {
+function cloneOperations<T = unknown>(
+  operations: readonly LayoutOperation<T>[]
+): LayoutOperation<T>[] {
   return operations.map(cloneOperation)
 }
 
-function cloneOperation<TData = unknown>(
-  operation: LayoutOperation<TData>
-): LayoutOperation<TData> {
+function cloneOperation<T = unknown>(operation: LayoutOperation<T>): LayoutOperation<T> {
   switch (operation.type) {
     case 'move':
       return {

@@ -29,7 +29,7 @@ export class ConsoleReporter {
    * Print a benchmark suite header
    */
   header(title: string, description?: string): void {
-    console.log('\n' + '='.repeat(60))
+    console.log(`\n${'='.repeat(60)}`)
     console.log(`# ${title}`)
     if (description) {
       console.log(`  ${description}`)
@@ -123,13 +123,15 @@ export class ConsoleReporter {
     })
 
     // Print header
-    const headerRow = headers.map((h, i) => h.padEnd(colWidths[i]!)).join(' | ')
+    const headerRow = headers.map((h, i) => h.padEnd(colWidths[i] as number)).join(' | ')
     console.log(`\n  ${headerRow}`)
-    console.log(`  ${colWidths.map((w) => '-'.repeat(w!)).join('-+-')}`)
+    console.log(`  ${colWidths.map((w) => '-'.repeat(w as number)).join('-+-')}`)
 
     // Print rows
     for (const row of rows) {
-      const rowStr = headers.map((h, i) => String(row[h] ?? '').padEnd(colWidths[i]!)).join(' | ')
+      const rowStr = headers
+        .map((h, i) => String(row[h] ?? '').padEnd(colWidths[i] as number))
+        .join(' | ')
       console.log(`  ${rowStr}`)
     }
   }
@@ -143,7 +145,7 @@ export class ConsoleReporter {
     passed: number
     failed: number
   }): void {
-    console.log('\n' + '='.repeat(60))
+    console.log(`\n${'='.repeat(60)}`)
     console.log('Summary')
     console.log('='.repeat(60))
     console.log(`  Suites: ${stats.totalSuites}`)

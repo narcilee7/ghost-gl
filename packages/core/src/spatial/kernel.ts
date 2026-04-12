@@ -18,11 +18,11 @@ import type {
  * - Automatic cache invalidation on mutations
  * - Zero-allocation query paths where possible
  */
-export class SpatialKernel<TData = unknown> {
-  private itemById: Map<string, SpatialItem<TData>>
-  private tree: RBush<SpatialItem<TData>>
+export class SpatialKernel<T = unknown> {
+  private itemById: Map<string, SpatialItem<T>>
+  private tree: RBush<SpatialItem<T>>
 
-  constructor(nodes: readonly LayoutNode<TData>[] = []) {
+  constructor(nodes: readonly LayoutNode<T>[] = []) {
     this.itemById = new Map()
     this.tree = new RBush()
     this.load(nodes)
@@ -31,10 +31,10 @@ export class SpatialKernel<TData = unknown> {
   /**
    * Load nodes into spatial index (bulk insert for efficiency)
    */
-  load(nodes: readonly LayoutNode<TData>[]): void {
+  load(nodes: readonly LayoutNode<T>[]): void {
     this.clear()
 
-    const items: SpatialItem<TData>[] = []
+    const items: SpatialItem<T>[] = []
 
     for (const node of nodes) {
       const item = createSpatialItem(node)
@@ -72,21 +72,21 @@ export class SpatialKernel<TData = unknown> {
   /**
    * Get spatial item by id
    */
-  get(id: string): SpatialItem<TData> | undefined {
+  get(id: string): SpatialItem<T> | undefined {
     return this.itemById.get(id)
   }
 
   /**
    * Get all spatial items
    */
-  getAll(): SpatialItem<TData>[] {
+  getAll(): SpatialItem<T>[] {
     return this.tree.all()
   }
 
   /**
    * Insert or update a node in the index
    */
-  upsert(node: LayoutNode<TData>): void {
+  upsert(node: LayoutNode<T>): void {
     const existing = this.itemById.get(node.id)
 
     if (existing != null) {
@@ -120,14 +120,14 @@ export class SpatialKernel<TData = unknown> {
   /**
    * Query items within a rectangular region
    */
-  search(query: SpatialQuery): SpatialItem<TData>[] {
+  search(query: SpatialQuery): SpatialItem<T>[] {
     return this.tree.search(query)
   }
 
   /**
    * Query items intersecting with viewport (with optional overscan)
    */
-  queryViewport(options: ViewportSpatialQuery): SpatialItem<TData>[] {
+  queryViewport(options: ViewportSpatialQuery): SpatialItem<T>[] {
     const { viewport, overscanX = 0, overscanY = 0 } = options
     const searchRect = expandRect(viewport, overscanX, overscanY)
 
@@ -142,7 +142,7 @@ export class SpatialKernel<TData = unknown> {
   /**
    * Query items that collide with given rect
    */
-  queryCollisions(query: CollisionQuery): SpatialItem<TData>[] {
+  queryCollisions(query: CollisionQuery): SpatialItem<T>[] {
     const searchRect = {
       maxX: query.x + query.w,
       maxY: query.y + query.h,
@@ -170,7 +170,7 @@ export class SpatialKernel<TData = unknown> {
   /**
    * Query k-nearest neighbors to a point
    */
-  queryKNearest(x: number, y: number, k: number): SpatialSearchResult<TData>[] {
+  queryKNearest(x: number, y: number, k: number): SpatialSearchResult<T>[] {
     // RBush doesn't have native k-NN, so we use a growing search
     // Start with a small box and expand until we have enough results
     let step = 100
@@ -244,7 +244,7 @@ export class SpatialKernel<TData = unknown> {
   /**
    * Iterate over all items in index order (by y, then x)
    */
-  *itemsInOrder(): Generator<SpatialItem<TData>> {
+  *itemsInOrder(): Generator<SpatialItem<T>> {
     const all = this.tree.all().sort((a, b) => {
       // Sort by y, then x, then id for determinism
       if (a.minY !== b.minY) return a.minY - b.minY
@@ -261,7 +261,7 @@ export class SpatialKernel<TData = unknown> {
 /**
  * Create a spatial item from layout node
  */
-function createSpatialItem<TData>(node: LayoutNode<TData>): SpatialItem<TData> {
+function createSpatialItem<T>(node: LayoutNode<T>): SpatialItem<T> {
   return {
     id: node.id,
     maxX: node.x + node.w,
@@ -275,7 +275,7 @@ function createSpatialItem<TData>(node: LayoutNode<TData>): SpatialItem<TData> {
 /**
  * Update spatial item from layout node
  */
-function updateSpatialItem<TData>(item: SpatialItem<TData>, node: LayoutNode<TData>): void {
+function updateSpatialItem<T>(item: SpatialItem<T>, node: LayoutNode<T>): void {
   item.id = node.id
   item.minX = node.x
   item.minY = node.y
@@ -287,7 +287,7 @@ function updateSpatialItem<TData>(item: SpatialItem<TData>, node: LayoutNode<TDa
 /**
  * Calculate squared distance from point to spatial item
  */
-function squaredDistanceToRect<TData>(x: number, y: number, item: SpatialItem<TData>): number {
+function squaredDistanceToRect<T>(x: number, y: number, item: SpatialItem<T>): number {
   // Find closest point on rect to (x, y)
   const closestX = clamp(x, item.minX, item.maxX)
   const closestY = clamp(y, item.minY, item.maxY)
