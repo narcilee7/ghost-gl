@@ -32,9 +32,9 @@ export interface GhostGridSkeletonProps {
 /**
  * Render context passed to the renderItem function
  */
-export interface GhostGridItemRenderContext<TData = unknown> {
+export interface GhostGridItemRenderContext<T = unknown> {
   /** The layout node with its data */
-  node: LayoutNode<TData>
+  node: LayoutNode<T>
   /** The calculated rect in pixels */
   rect: Rect
   /** Current materialization mode */
@@ -50,9 +50,9 @@ export interface GhostGridItemRenderContext<TData = unknown> {
 /**
  * Props for the GhostGrid component
  */
-export interface GhostGridProps<TData = unknown, TSnapshot = unknown> {
+export interface GhostGridProps<T = unknown, S = unknown> {
   /** Initial nodes for the grid */
-  initialNodes?: readonly LayoutNode<TData>[]
+  initialNodes?: readonly LayoutNode<T>[]
   /** Grid configuration */
   columns?: number
   /** Height of each row in pixels */
@@ -67,36 +67,36 @@ export interface GhostGridProps<TData = unknown, TSnapshot = unknown> {
   paddingTop?: number
   /** Layout behavior policy */
   policy?: LayoutPolicy
-  /** Render function for each grid item */
-  renderItem: (context: GhostGridItemRenderContext<TData>) => ReactNode
+  /** Optional ref to access grid internals */
+  gridRef?: import('react').RefObject<GhostGridRef<T> | null>
   /** Optional snapshot adapter for state preservation */
-  snapshotAdapter?: SnapshotAdapter<TSnapshot>
-  /** Additional className for the container */
-  className?: string
-  /** Additional inline styles for the container */
-  style?: CSSProperties
+  snapshotAdapter?: SnapshotAdapter<S>
   /** Width of the container (defaults to 100%) */
   width?: number
   /** Overscan rows for virtualization */
   overscan?: number
   /** Children for additional customization */
   children?: ReactNode
+  /** Additional className for the container */
+  className?: string
+  /** Additional inline styles for the container */
+  style?: CSSProperties
   /** Callback when grid state changes */
-  onStateChange?: (state: RuntimeControllerState<TData>) => void
+  onStateChange?: (state: RuntimeControllerState<T>) => void
   /** Callback when nodes change */
-  onNodesChange?: (nodes: readonly LayoutNode<TData>[]) => void
-  /** Optional ref to access grid internals */
-  gridRef?: import('react').RefObject<GhostGridRef<TData> | null>
+  onNodesChange?: (nodes: readonly LayoutNode<T>[]) => void
+  /** Render function for each grid item */
+  renderItem: (context: GhostGridItemRenderContext<T>) => ReactNode
 }
 
 /**
  * Props for the GhostGridItem component
  */
-export interface GhostGridItemProps<TData = unknown> {
+export interface GhostGridItemProps<T = unknown> {
   /** The materialized node to render */
-  materializedNode: MaterializedNode<TData>
+  materializedNode: MaterializedNode<T>
   /** Render function */
-  renderItem: (context: GhostGridItemRenderContext<TData>) => ReactNode
+  renderItem: (context: GhostGridItemRenderContext<T>) => ReactNode
   /** Whether this item is being dragged */
   isDragging?: boolean
   /** Whether this item is being resized */
@@ -106,9 +106,9 @@ export interface GhostGridItemProps<TData = unknown> {
 /**
  * Options for the useGhostGrid hook
  */
-export interface UseGhostGridOptions<TData = unknown> {
+export interface UseGhostGridOptions<T = unknown> {
   /** Initial nodes */
-  initialNodes?: readonly LayoutNode<TData>[]
+  initialNodes?: readonly LayoutNode<T>[]
   /** Grid configuration */
   columns?: number
   /** Row height in pixels */
@@ -134,15 +134,15 @@ export interface UseGhostGridOptions<TData = unknown> {
 /**
  * Return value of the useGhostGrid hook
  */
-export interface UseGhostGridReturn<TData = unknown> {
+export interface UseGhostGridReturn<T = unknown> {
   /** The runtime controller instance */
-  controller: RuntimeController<TData> | null
+  controller: RuntimeController<T> | null
   /** Current grid state */
-  state: RuntimeControllerState<TData> | null
+  state: RuntimeControllerState<T> | null
   /** Currently visible/layout nodes */
-  nodes: readonly LayoutNode<TData>[]
+  nodes: readonly LayoutNode<T>[]
   /** Currently materialized nodes */
-  materialized: MaterializedNode<TData>[]
+  materialized: MaterializedNode<T>[]
   /** Grid bounds */
   bounds: Rect | null
   /** Grid metrics */
@@ -164,8 +164,8 @@ export interface UseGhostGridReturn<TData = unknown> {
 /**
  * Imperative API exposed by GhostGrid via ref
  */
-export interface GhostGridRef<TData = unknown> {
-  controller: RuntimeController<TData> | null
+export interface GhostGridRef<T = unknown> {
+  controller: RuntimeController<T> | null
   containerRef: RefObject<HTMLElement | null>
   metrics: GridMetrics | null
 }
@@ -173,11 +173,11 @@ export interface GhostGridRef<TData = unknown> {
 /**
  * Context value for GhostGridContext
  */
-export interface GhostGridContextValue<TData = unknown> {
+export interface GhostGridContextValue<T = unknown> {
   /** The runtime controller */
-  controller: RuntimeController<TData> | null
+  controller: RuntimeController<T> | null
   /** Current state */
-  state: RuntimeControllerState<TData> | null
+  state: RuntimeControllerState<T> | null
   /** Container element ref */
   containerRef: RefObject<HTMLElement | null>
   /** Current viewport */
@@ -185,7 +185,7 @@ export interface GhostGridContextValue<TData = unknown> {
   /** Update viewport */
   setViewport: (viewport: Rect) => void
   /** Current materialized nodes */
-  materialized: MaterializedNode<TData>[]
+  materialized: MaterializedNode<T>[]
   /** Grid metrics */
   metrics: GridMetrics | null
 }
