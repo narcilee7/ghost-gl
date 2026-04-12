@@ -3,6 +3,7 @@
 import type { Rect } from 'ghost-gl-core'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { GhostGridProvider } from '../context/GhostGridContext'
+import { GhostGridDndProvider } from '../context/GhostGridDndContext'
 import { useGhostGrid } from '../hooks/useGhostGrid'
 import type {
   GhostGridContextValue,
@@ -207,59 +208,61 @@ export function GhostGrid<TData = unknown, TSnapshot = unknown>(
 
   return (
     <GhostGridProvider value={contextValue}>
-      <div
-        ref={containerRef}
-        className={className}
-        style={containerStyle}
-        data-ghost-grid=""
-        data-columns={columns}
-      >
-        {/* Grid content layer */}
+      <GhostGridDndProvider>
         <div
-          style={{
-            height: gridHeight,
-            position: 'relative',
-            width: '100%',
-          }}
+          ref={containerRef}
+          className={className}
+          style={containerStyle}
+          data-ghost-grid=""
+          data-columns={columns}
         >
-          {/* Render materialized nodes */}
-          {materialized.map((item) => {
-            const { id, rect, mode, reason } = item
-            const node = state?.nodes.find((n) => n.id === id)
+          {/* Grid content layer */}
+          <div
+            style={{
+              height: gridHeight,
+              position: 'relative',
+              width: '100%',
+            }}
+          >
+            {/* Render materialized nodes */}
+            {materialized.map((item) => {
+              const { id, rect, mode, reason } = item
+              const node = state?.nodes.find((n) => n.id === id)
 
-            if (!node) return null
+              if (!node) return null
 
-            const context: GhostGridItemRenderContext<TData> = {
-              isDragging: state?.interactionSession?.targetId === id,
-              isResizing: false, // Will be updated when resize is implemented
-              mode,
-              node: node as typeof node & { data: TData },
-              reason,
-              rect,
-            }
+              const context: GhostGridItemRenderContext<TData> = {
+                isDragging: state?.interactionSession?.targetId === id,
+                isResizing: false, // Will be updated when resize is implemented
+                mode,
+                node: node as typeof node & { data: TData },
+                reason,
+                rect,
+              }
 
-            return (
-              <div
-                key={id}
-                data-ghost-id={id}
-                data-ghost-mode={mode}
-                style={{
-                  height: rect.height,
-                  left: rect.left + paddingLeft,
-                  position: 'absolute',
-                  top: rect.top + paddingTop,
-                  width: rect.width,
-                }}
-              >
-                {renderItem(context)}
-              </div>
-            )
-          })}
+              return (
+                <div
+                  key={id}
+                  data-ghost-id={id}
+                  data-ghost-mode={mode}
+                  style={{
+                    height: rect.height,
+                    left: rect.left + paddingLeft,
+                    position: 'absolute',
+                    top: rect.top + paddingTop,
+                    width: rect.width,
+                  }}
+                >
+                  {renderItem(context)}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Additional children */}
+          {children}
         </div>
-
-        {/* Additional children */}
-        {children}
-      </div>
+      </GhostGridDndProvider>
     </GhostGridProvider>
   )
 }

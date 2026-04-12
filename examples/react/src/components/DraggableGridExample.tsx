@@ -1,7 +1,6 @@
 import type { LayoutNode, RuntimeControllerState } from 'ghost-gl-core'
 import {
   GhostGrid,
-  GhostGridDndProvider,
   useGhostGridDrag,
   type GhostGridRef,
 } from 'ghost-gl-react'
@@ -142,67 +141,61 @@ export function DraggableGridExample() {
         <p>Drag and drop grid items with collision resolution and undo/redo support</p>
       </div>
 
-      <GhostGridDndProvider
-        controller={gridRef.current?.controller ?? undefined}
-        containerRef={gridRef.current?.containerRef ?? undefined}
-        metrics={gridRef.current?.metrics ?? undefined}
-      >
-        <div className="example-toolbar">
-          <button type="button" onClick={() => gridRef.current?.controller?.undo()} disabled={!stats?.canUndo}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Undo"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-            Undo
-          </button>
-          <button type="button" onClick={() => gridRef.current?.controller?.redo()} disabled={!stats?.canRedo}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Redo"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-            Redo
-          </button>
-          <button
-            type="button"
-            className="primary"
-            onClick={() => {
-              console.log("Add widget clicked! gridRef:", gridRef.current)
-              // Add a new widget
-              const id = String(Date.now())
-              const colors = [
-                '#667eea',
-                '#f5576c',
-                '#00f2fe',
-                '#43e97b',
-                '#fee140',
-                '#fa709a',
-                '#764ba2',
-              ]
-              const color = colors[Math.floor(Math.random() * colors.length)]
-              gridRef.current?.controller?.upsertNode({
-                id,
-                x: 0,
-                y: 0,
-                w: 3,
-                h: 3,
-                data: { title: `New Widget`, type: 'dynamic', color },
-              })
-            }}
-          >
-            + Add Widget
-          </button>
-          <span className="info">Drag items to reposition • Use undo/redo to track changes</span>
-        </div>
+      <div className="example-toolbar">
+        <button type="button" onClick={() => gridRef.current?.controller?.undo()} disabled={!stats?.canUndo}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Undo"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+          Undo
+        </button>
+        <button type="button" onClick={() => gridRef.current?.controller?.redo()} disabled={!stats?.canRedo}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Redo"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+          Redo
+        </button>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => {
+            console.log("Add widget clicked! gridRef:", gridRef.current)
+            // Add a new widget
+            const id = String(Date.now())
+            const colors = [
+              '#667eea',
+              '#f5576c',
+              '#00f2fe',
+              '#43e97b',
+              '#fee140',
+              '#fa709a',
+              '#764ba2',
+            ]
+            const color = colors[Math.floor(Math.random() * colors.length)]
+            gridRef.current?.controller?.upsertNode({
+              id,
+              x: 0,
+              y: 0,
+              w: 3,
+              h: 3,
+              data: { title: `New Widget`, type: 'dynamic', color },
+            })
+          }}
+        >
+          + Add Widget
+        </button>
+        <span className="info">Drag items to reposition • Use undo/redo to track changes</span>
+      </div>
 
-        <div className="grid-container" style={{ height: 500 }}>
-          <GhostGrid<WidgetData>
-            gridRef={gridRef}
-            columns={12}
-            rowHeight={50}
-            initialNodes={initialNodes}
-            overscan={1}
-            policy={{ collisionDirection: 'vertical', autoCompact: true }}
-            onStateChange={setStats}
-            renderItem={({ node, rect, mode }) => (
-              <DraggableItem node={node} rect={rect} mode={mode} />
-            )}
-          />
-        </div>
-      </GhostGridDndProvider>
+      <div className="grid-container" style={{ height: 500 }}>
+        <GhostGrid<WidgetData>
+          gridRef={gridRef}
+          columns={12}
+          rowHeight={50}
+          initialNodes={initialNodes}
+          overscan={1}
+          policy={{ collisionDirection: 'vertical', autoCompact: true }}
+          onStateChange={setStats}
+          renderItem={({ node, rect, mode }) => (
+            <DraggableItem node={node} rect={rect} mode={mode} />
+          )}
+        />
+      </div>
 
       {stats && (
         <div className="stats-panel">

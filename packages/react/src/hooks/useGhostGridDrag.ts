@@ -39,8 +39,10 @@ export function useGhostGridDrag(options: UseGhostGridDragOptions): UseGhostGrid
       // Only left mouse button
       if (e.button !== 0) return
 
-      // Capture pointer
-      e.currentTarget.setPointerCapture(e.pointerId)
+      // Capture pointer (may not be available in all environments like jsdom)
+      if (typeof e.currentTarget.setPointerCapture === 'function') {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      }
 
       // Start drag
       dnd.startDrag(nodeId, e.clientX, e.clientY)
@@ -61,8 +63,10 @@ export function useGhostGridDrag(options: UseGhostGridDragOptions): UseGhostGrid
     (e: React.PointerEvent) => {
       if (!isDragging) return
 
-      // Release pointer
-      e.currentTarget.releasePointerCapture(e.pointerId)
+      // Release pointer (may not be available in all environments like jsdom)
+      if (typeof e.currentTarget.releasePointerCapture === 'function') {
+        e.currentTarget.releasePointerCapture(e.pointerId)
+      }
 
       // End drag
       dnd.endDrag()
