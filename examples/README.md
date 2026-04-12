@@ -31,9 +31,24 @@ Demonstrates the three-state materialization model:
 npx tsx examples/materialization-scheduler.ts
 ```
 
+### [react/](./react/)
+
+A complete React application with three interactive demos:
+- **Basic Grid**: Three-state materialization demonstration
+- **Draggable Grid**: Drag & drop with undo/redo
+- **Virtualized Grid**: Large dataset performance
+
+**Run it:**
+```bash
+cd examples/react
+pnpm install
+pnpm dev
+```
+
+Then open http://localhost:3000
+
 ## More Examples Coming Soon
 
-- **React Integration**: Using `GhostGrid` component
 - **Collision Resolution**: Multi-direction collision handling
 - **Auto-compact Layout**: Automatic space optimization
 - **Custom Constraints**: Validation and boundary enforcement
