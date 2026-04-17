@@ -39,7 +39,7 @@ export function useGhostGridDrag(options: UseGhostGridDragOptions): UseGhostGrid
       // Only left mouse button
       if (e.button !== 0) return
 
-      // Capture pointer (may not be available in all environments like jsdom)
+      // Capture pointer so pointermove/up continue even if cursor leaves element
       if (typeof e.currentTarget.setPointerCapture === 'function') {
         e.currentTarget.setPointerCapture(e.pointerId)
       }
@@ -50,28 +50,25 @@ export function useGhostGridDrag(options: UseGhostGridDragOptions): UseGhostGrid
     [disabled, nodeId, dnd]
   )
 
+  // Always forward move/up to DnD context; it guards via internal refs.
+  // This avoids React's stale-closure trap where isDragging is still false
+  // immediately after pointerDown.
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!isDragging || disabled) return
-
+      if (disabled) return
       dnd.updateDrag(e.clientX, e.clientY)
     },
-    [isDragging, disabled, dnd]
+    [disabled, dnd]
   )
 
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
-      if (!isDragging) return
-
-      // Release pointer (may not be available in all environments like jsdom)
       if (typeof e.currentTarget.releasePointerCapture === 'function') {
         e.currentTarget.releasePointerCapture(e.pointerId)
       }
-
-      // End drag
       dnd.endDrag()
     },
-    [isDragging, dnd]
+    [dnd]
   )
 
   const handlers = useMemo(
