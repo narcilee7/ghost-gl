@@ -247,9 +247,9 @@ export function GhostGrid<T = unknown, TSnapshot = unknown>(
                   data-ghost-mode={mode}
                   style={{
                     height: rect.height,
-                    left: rect.left + paddingLeft,
+                    left: rect.left,
                     position: 'absolute',
-                    top: rect.top + paddingTop,
+                    top: rect.top,
                     width: rect.width,
                   }}
                 >

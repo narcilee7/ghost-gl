@@ -259,20 +259,23 @@ export class LayoutRuntime<T = unknown> {
     const materialized: MaterializedNode<T>[] = []
     const visibleRectIds = new Set(visible.map((rect) => rect.id))
 
+    // Use planning nodes so interaction previews (drag/resize) produce correct rects
+    const planningNodeMap = createNodeMap(planningNodes)
+
     // Process all decisions from the scheduler plan
     for (const decision of plan.decisions) {
-      const item = this.kernel.get(decision.id)
-      if (item == null) continue
+      const node = planningNodeMap.get(decision.id)
+      if (node == null) continue
 
       this.modeById.set(decision.id, decision.mode)
 
-      const rect = projectNodeToRect(item.node, this.metrics)
+      const rect = projectNodeToRect(node, this.metrics)
 
       if (decision.mode !== 'ghost') {
         materialized.push({
           id: decision.id,
           mode: decision.mode,
-          node: item.node,
+          node,
           reason: decision.reason,
           rect,
         })

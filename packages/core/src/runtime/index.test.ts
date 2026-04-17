@@ -325,6 +325,60 @@ describe('LayoutRuntime', () => {
     expect(runtime.getNode('a')).toEqual({ id: 'a', x: 0, y: 10, w: 1, h: 1 })
   })
 
+  it('uses preview node positions for materialized rects during interaction', () => {
+    const runtime = new LayoutRuntime({
+      metrics,
+      nodes: [
+        { id: 'a', x: 0, y: 0, w: 1, h: 1 },
+        { id: 'b', x: 2, y: 0, w: 1, h: 1 },
+      ],
+    })
+
+    // Node 'a' starts at (0, 0) -> rect.left = 16, rect.top = 24
+    const baseline = runtime.planMaterialization({
+      height: 200,
+      left: 0,
+      top: 0,
+      width: 500,
+      timestamp: 1_000,
+    })
+    const baselineA = baseline.materialized.find((m) => m.id === 'a')
+    expect(baselineA?.rect.left).toBe(16)
+    expect(baselineA?.rect.top).toBe(24)
+
+    // Preview dragging 'a' to (1, 2)
+    const interaction = previewInteraction(
+      createInteractionSession({
+        id: 'drag-a',
+        kind: 'drag',
+        nodes: runtime.getNodes(),
+        targetId: 'a',
+      }),
+      [{ id: 'a', placement: { x: 1, y: 2 }, type: 'move' }]
+    )
+
+    const plan = runtime.planMaterialization({
+      height: 200,
+      interactionSession: interaction.session,
+      left: 0,
+      top: 0,
+      width: 500,
+      timestamp: 1_001,
+    })
+
+    // Materialized rect should reflect the preview position, not runtime state
+    const materializedA = plan.materialized.find((m) => m.id === 'a')
+    expect(materializedA).toBeDefined()
+    // (1, 2) with metrics: left = 16 + 1*(100+10) = 126, top = 24 + 2*(80+20) = 224
+    expect(materializedA!.rect.left).toBe(126)
+    expect(materializedA!.rect.top).toBe(224)
+    expect(materializedA!.node.x).toBe(1)
+    expect(materializedA!.node.y).toBe(2)
+
+    // Runtime state must remain unchanged
+    expect(runtime.getNode('a')).toEqual({ id: 'a', x: 0, y: 0, w: 1, h: 1 })
+  })
+
   it('re-exports the pure operation model from the public core entry', () => {
     const result = applyLayoutOperation([{ id: 'a', x: 0, y: 0, w: 1, h: 1 }], {
       id: 'a',

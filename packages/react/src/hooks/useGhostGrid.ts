@@ -151,18 +151,39 @@ export function useGhostGrid<T = unknown>(
     runtimeRef.current = new LayoutRuntime(layoutOptions)
     controllerRef.current = new RuntimeController(layoutOptions)
 
-    // Subscribe to state changes
+    // Subscribe to state changes — also re-plan materialization on interaction updates
     const unsubscribe = controllerRef.current.subscribe(
       (newState) => {
         if (!unmountingRef.current) {
           setState(newState)
+          // Re-plan materialization when interaction session changes so dragged items move
+          if (viewportRef.current && controllerRef.current) {
+            const plan = controllerRef.current.planMaterialization({
+              left: viewportRef.current.left,
+              top: viewportRef.current.top,
+              width: viewportRef.current.width,
+              height: viewportRef.current.height,
+              overscanY: overscan,
+            })
+            setMaterialized(plan.materialized)
+          }
         }
       },
       { debounceMs }
     )
 
-    // Set initial state
+    // Set initial state and materialization
     setState(controllerRef.current.getState())
+    if (viewportRef.current) {
+      const plan = controllerRef.current.planMaterialization({
+        left: viewportRef.current.left,
+        top: viewportRef.current.top,
+        width: viewportRef.current.width,
+        height: viewportRef.current.height,
+        overscanY: overscan,
+      })
+      setMaterialized(plan.materialized)
+    }
     setIsReady(true)
 
     return () => {
