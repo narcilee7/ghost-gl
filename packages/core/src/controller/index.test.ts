@@ -63,6 +63,56 @@ describe('RuntimeController', () => {
     expect(controller.getHistory().past).toHaveLength(0)
   })
 
+  it('produces materialized rects from preview node positions during interaction', () => {
+    const controller = new RuntimeController({
+      metrics,
+      nodes: [
+        { id: 'a', x: 0, y: 0, w: 1, h: 1 },
+        { id: 'b', x: 2, y: 0, w: 1, h: 1 },
+      ],
+    })
+
+    // Baseline plan: node 'a' at (0, 0) -> left=16, top=24
+    const baseline = controller.planMaterialization({
+      height: 200,
+      left: 0,
+      top: 0,
+      width: 500,
+      timestamp: 1_000,
+    })
+    const baselineA = baseline.materialized.find((m) => m.id === 'a')
+    expect(baselineA?.rect.left).toBe(16)
+    expect(baselineA?.rect.top).toBe(24)
+
+    // Begin drag and preview move for 'a' to (1, 2)
+    controller.beginInteraction({
+      id: 'drag-a',
+      kind: 'drag',
+      targetId: 'a',
+    })
+    controller.previewInteraction([{ id: 'a', placement: { x: 1, y: 2 }, type: 'move' }])
+
+    const plan = controller.planMaterialization({
+      height: 200,
+      left: 0,
+      top: 0,
+      width: 500,
+      timestamp: 1_001,
+    })
+
+    // Materialized rect must reflect the preview position
+    const materializedA = plan.materialized.find((m) => m.id === 'a')
+    expect(materializedA).toBeDefined()
+    // (1, 2) with metrics: left = 16 + 1*(100+10) = 126, top = 24 + 2*(80+20) = 224
+    expect(materializedA!.rect.left).toBe(126)
+    expect(materializedA!.rect.top).toBe(224)
+    expect(materializedA!.node.x).toBe(1)
+    expect(materializedA!.node.y).toBe(2)
+
+    // Runtime state must remain unchanged
+    expect(controller.getNode('a')).toEqual({ id: 'a', x: 0, y: 0, w: 1, h: 1 })
+  })
+
   it('supports undo and redo for committed controller actions', () => {
     const controller = new RuntimeController({
       constraints: { columns: 4 },

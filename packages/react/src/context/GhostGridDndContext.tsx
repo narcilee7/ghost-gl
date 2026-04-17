@@ -72,6 +72,18 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
   const [isDragging, setIsDragging] = useState(false)
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null)
 
+  // Use refs to track dragging state so event handlers always see current values
+  const isDraggingRef = useRef(false)
+  const draggedNodeIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    isDraggingRef.current = isDragging
+  }, [isDragging])
+
+  useEffect(() => {
+    draggedNodeIdRef.current = draggedNodeId
+  }, [draggedNodeId])
+
   // Refs for tracking drag state
   const dragStartPos = useRef<{ x: number; y: number } | null>(null)
   const dragOffset = useRef<{ x: number; y: number } | null>(null)
@@ -172,7 +184,7 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
   const updateDrag = useCallback(
     (pointerX: number, pointerY: number) => {
       const currentController = controllerRef.current
-      if (!isDragging || !currentController || !draggedNodeId || !dragOffset.current) return
+      if (!isDraggingRef.current || !currentController || !draggedNodeIdRef.current || !dragOffset.current) return
 
       const gridPos = pointerToGrid(pointerX, pointerY)
       if (!gridPos) return
@@ -188,26 +200,26 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
         // Preview the move operation
         currentController.previewInteraction([
           {
-            id: draggedNodeId,
+            id: draggedNodeIdRef.current,
             placement: { x: newX, y: newY },
             type: 'move',
           },
         ])
       }
     },
-    // dragOffset and controllerRef are accessed via ref.current
-    [isDragging, draggedNodeId, pointerToGrid]
+    // All mutable state accessed via refs; pointerToGrid is stable
+    [pointerToGrid]
   )
 
   const endDrag = useCallback(() => {
     const currentController = controllerRef.current
-    if (!isDragging || !currentController) return
+    if (!isDraggingRef.current || !currentController) return
 
     // Commit the interaction
     currentController.commitInteraction()
 
-    if (draggedNodeId && lastGridPos.current) {
-      onDragEnd?.(draggedNodeId, lastGridPos.current.x, lastGridPos.current.y)
+    if (draggedNodeIdRef.current && lastGridPos.current) {
+      onDragEnd?.(draggedNodeIdRef.current, lastGridPos.current.x, lastGridPos.current.y)
     }
 
     // Reset state
@@ -216,11 +228,11 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
     dragStartPos.current = null
     dragOffset.current = null
     lastGridPos.current = null
-  }, [isDragging, draggedNodeId, onDragEnd])
+  }, [onDragEnd])
 
   const cancelDrag = useCallback(() => {
     const currentController = controllerRef.current
-    if (!isDragging || !currentController) return
+    if (!isDraggingRef.current || !currentController) return
 
     // Cancel the interaction
     currentController.cancelInteraction()
@@ -231,7 +243,7 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
     dragStartPos.current = null
     dragOffset.current = null
     lastGridPos.current = null
-  }, [isDragging])
+  }, [])
 
   const value = useMemo<GhostGridDndContextValue>(
     () => ({
