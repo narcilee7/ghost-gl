@@ -6,6 +6,7 @@ export interface LayoutConstraints {
 }
 
 export type LayoutConstraintViolationCode =
+  | 'duplicate_id'
   | 'negative_x'
   | 'negative_y'
   | 'invalid_width'
@@ -21,7 +22,13 @@ export function assertLayoutNodes<T = unknown>(
   nodes: readonly LayoutNode<T>[],
   constraints?: LayoutConstraints
 ): void {
+  const seenIds = new Set<string>()
+
   for (const node of nodes) {
+    if (seenIds.has(node.id)) {
+      throw createLayoutViolationError({ code: 'duplicate_id', id: node.id }, constraints)
+    }
+    seenIds.add(node.id)
     assertLayoutNode(node, constraints)
   }
 }
@@ -112,6 +119,8 @@ function formatViolation(
   constraints?: LayoutConstraints
 ): string {
   switch (violation.code) {
+    case 'duplicate_id':
+      return `Node id "${violation.id}" must be unique.`
     case 'negative_x':
       return `Node "${violation.id}" must have x >= 0.`
     case 'negative_y':

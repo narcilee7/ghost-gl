@@ -38,15 +38,13 @@ export function applyLayoutTransaction<T = unknown>(
       continue
     }
 
-    const previousNodes = nextNodes
+    const previousNodes = cloneNodes(nextNodes)
 
     if (shouldReuseMutationContext(operation)) {
       mutationContext ??= createOperationMutationContext(previousNodes)
     } else {
       mutationContext = undefined
     }
-
-    const inverseOperation = createInverseOperation(previousNodes, operation)
 
     const operationOptions: LayoutOperationOptions<T> = { ...options }
 
@@ -69,8 +67,11 @@ export function applyLayoutTransaction<T = unknown>(
       }
     }
 
-    if (inverseOperation != null) {
-      inverseOperations.unshift(inverseOperation)
+    if (result.changed) {
+      inverseOperations.unshift({
+        nodes: cloneNodes(previousNodes),
+        type: 'replace',
+      })
     }
 
     nextNodes =
@@ -84,78 +85,6 @@ export function applyLayoutTransaction<T = unknown>(
     nextNodes,
     operations,
     results,
-  }
-}
-
-function createInverseOperation<T = unknown>(
-  nodes: readonly LayoutNode<T>[],
-  operation: LayoutOperation<T>
-): LayoutOperation<T> | undefined {
-  switch (operation.type) {
-    case 'move': {
-      const node = nodes.find((candidate) => candidate.id === operation.id)
-
-      if (node == null) {
-        return undefined
-      }
-
-      return {
-        id: node.id,
-        placement: {
-          x: node.x,
-          y: node.y,
-        },
-        type: 'move',
-      }
-    }
-    case 'resize': {
-      const node = nodes.find((candidate) => candidate.id === operation.id)
-
-      if (node == null) {
-        return undefined
-      }
-
-      return {
-        id: node.id,
-        size: {
-          h: node.h,
-          w: node.w,
-        },
-        type: 'resize',
-      }
-    }
-    case 'upsert': {
-      const previousNode = nodes.find((candidate) => candidate.id === operation.node.id)
-
-      if (previousNode == null) {
-        return {
-          id: operation.node.id,
-          type: 'remove',
-        }
-      }
-
-      return {
-        node: cloneNode(previousNode),
-        type: 'upsert',
-      }
-    }
-    case 'remove': {
-      const previousNode = nodes.find((candidate) => candidate.id === operation.id)
-
-      if (previousNode == null) {
-        return undefined
-      }
-
-      return {
-        node: cloneNode(previousNode),
-        type: 'upsert',
-      }
-    }
-    case 'replace':
-      return {
-        nodes: cloneNodes(nodes),
-        type: 'replace',
-      }
   }
 }
 

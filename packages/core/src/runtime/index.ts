@@ -87,7 +87,7 @@ export class LayoutRuntime<T = unknown> {
   }
 
   getBounds(): Rect {
-    return this.bounds
+    return { ...this.bounds }
   }
 
   getMetrics(): GridMetrics {
@@ -103,15 +103,15 @@ export class LayoutRuntime<T = unknown> {
   }
 
   getNode(id: string): LayoutNode<T> | undefined {
-    return this.nodeMap.get(id)
+    return cloneOptionalNode(this.nodeMap.get(id))
   }
 
   getNodeMap(): ReadonlyMap<string, LayoutNode<T>> {
-    return this.nodeMap
+    return createNodeMap(this.getNodes())
   }
 
   getNodes(): readonly LayoutNode<T>[] {
-    return this.nodes
+    return cloneNodes(this.nodes)
   }
 
   /**
@@ -381,12 +381,10 @@ export class LayoutRuntime<T = unknown> {
   private rebuildState(operation?: LayoutOperation<T>): void {
     this.nodeMap = createNodeMap(this.nodes)
 
-    // Incremental update of spatial index
-    if (operation) {
-      this.updateSpatialIndexIncremental(operation)
-    } else {
-      // Fallback: full rebuild when operation info not available
+    if (operation == null || requiresFullSpatialRebuild(operation)) {
       this.kernel.load(this.nodes)
+    } else {
+      this.updateSpatialIndexIncremental(operation)
     }
 
     // Recompute bounds using metrics (converted to pixel space)
@@ -408,7 +406,7 @@ export class LayoutRuntime<T = unknown> {
         break
       }
       case 'upsert':
-        this.kernel.upsert(operation.node)
+        this.kernel.upsert(this.nodeMap.get(operation.node.id) ?? operation.node)
         break
       case 'remove':
         this.kernel.remove(operation.id)
@@ -438,6 +436,24 @@ export class LayoutRuntime<T = unknown> {
         return
     }
   }
+}
+
+function cloneOptionalNode<T = unknown>(
+  node: LayoutNode<T> | undefined
+): LayoutNode<T> | undefined {
+  return node == null ? undefined : cloneNode(node)
+}
+
+function cloneNode<T = unknown>(node: LayoutNode<T>): LayoutNode<T> {
+  return { ...node }
+}
+
+function cloneNodes<T = unknown>(nodes: readonly LayoutNode<T>[]): LayoutNode<T>[] {
+  return nodes.map(cloneNode)
+}
+
+function requiresFullSpatialRebuild<T = unknown>(operation: LayoutOperation<T>): boolean {
+  return operation.type === 'move' || operation.type === 'resize' || operation.type === 'replace'
 }
 
 function toSchedulerConfig(

@@ -278,25 +278,19 @@ function resolveNodeCollisions<T = unknown>(
       }
 
       // Find the best node to displace (prefer unpinned, non-static)
-      const displaced =
-        colliders.find((item) => !(item.node.pinned ?? false) && !item.node.static) ??
-        colliders.find((item) => !item.node.static) ?? // fallback to any non-static
-        colliders[0] // final fallback
+      const displaced = colliders.find((item) => !(item.node.pinned ?? false) && !item.node.static)
 
-      if (displaced == null || (displaced.node.pinned ?? false)) {
-        // Can't displace pinned nodes, move current instead
+      if (displaced == null) {
+        // Static and pinned colliders are barriers; move current instead.
+        const blocker = colliders[0]
         if (direction === 'vertical' || direction === 'both') {
           current.node.y =
-            displaced?.node.y !== undefined
-              ? displaced.node.y + displaced.node.h
-              : current.node.y + 1
+            blocker?.node.y !== undefined ? blocker.node.y + blocker.node.h : current.node.y + 1
           syncSpatialItem(tree, current)
         }
         if (direction === 'horizontal' || direction === 'both') {
           current.node.x =
-            displaced?.node.x !== undefined
-              ? displaced.node.x + displaced.node.w
-              : current.node.x + 1
+            blocker?.node.x !== undefined ? blocker.node.x + blocker.node.w : current.node.x + 1
           syncSpatialItem(tree, current)
         }
         continue
@@ -332,6 +326,9 @@ function createSpatialIndex<T = unknown>(
 } {
   const itemById = new Map<string, SpatialItem<T>>()
   const items = nodes.map((node) => {
+    if (itemById.has(node.id)) {
+      throw new Error(`Node id "${node.id}" must be unique.`)
+    }
     const item = toSpatialItem(node)
     itemById.set(item.id, item)
     return item

@@ -1,5 +1,6 @@
 import { createNanoEvents, type Emitter } from 'nanoevents'
 
+import { createLayoutViolationError } from '../constraints'
 import {
   createLayoutHistory,
   type LayoutHistoryState,
@@ -222,36 +223,19 @@ export class RuntimeController<T = unknown> implements ControllerAPI<T> {
   }
 
   moveNode(id: string, x: number, y: number): boolean {
-    const success = this.runtime.moveNode(id, { x, y })
-    if (success) {
-      this.emitNodesChange()
-      this.emitState()
-    }
-    return success
+    return this.commitApiOperations([{ id, placement: { x, y }, type: 'move' }]) != null
   }
 
   resizeNode(id: string, w: number, h: number): boolean {
-    const success = this.runtime.resizeNode(id, { w, h })
-    if (success) {
-      this.emitNodesChange()
-      this.emitState()
-    }
-    return success
+    return this.commitApiOperations([{ id, size: { h, w }, type: 'resize' }]) != null
   }
 
   upsertNode(node: LayoutNode<T>): void {
-    this.runtime.upsertNode(node)
-    this.emitNodesChange()
-    this.emitState()
+    this.commitApiOperations([{ node, type: 'upsert' }], { throwOnRejected: true })
   }
 
   removeNode(id: string): boolean {
-    const success = this.runtime.removeNode(id)
-    if (success) {
-      this.emitNodesChange()
-      this.emitState()
-    }
-    return success
+    return this.commitApiOperations([{ id, type: 'remove' }]) != null
   }
 
   // ==================== Interaction Lifecycle ====================
@@ -545,4 +529,46 @@ export class RuntimeController<T = unknown> implements ControllerAPI<T> {
   private emitTransaction(event: TransactionEvent<T>): void {
     this.emitter.emit('transaction', event)
   }
+
+  private commitApiOperations(
+    operations: readonly LayoutOperation<T>[],
+    options: { throwOnRejected?: boolean } = {}
+  ): LayoutTransactionResult<T> | undefined {
+    const transaction = this.runtime.dispatchAll(operations)
+
+    if (!transaction.committed) {
+      if (options.throwOnRejected) {
+        throwRejectedTransaction(transaction, this.runtime.getConstraints())
+      }
+      return undefined
+    }
+
+    if (transaction.changed) {
+      this.history = recordLayoutTransaction(this.history, transaction)
+      this.emitTransaction({
+        source: 'api',
+        transaction,
+        type: 'commit',
+      })
+      this.emitHistory()
+      this.emitNodesChange()
+      this.emitState()
+    }
+
+    return transaction
+  }
+}
+
+function throwRejectedTransaction<T = unknown>(
+  transaction: LayoutTransactionResult<T>,
+  constraints: LayoutRuntimeOptions<T>['constraints']
+): never {
+  const failedResult =
+    transaction.failedAt !== undefined ? transaction.results[transaction.failedAt] : undefined
+
+  if (failedResult?.violation != null) {
+    throw createLayoutViolationError(failedResult.violation, constraints)
+  }
+
+  throw new Error('Layout transaction was rejected.')
 }

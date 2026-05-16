@@ -253,7 +253,10 @@ function detectProfile(
  * Get profile-specific configuration.
  */
 function getProfileConfig(profile: SchedulerProfile, config: SchedulerConfig): ProfileConfig {
-  const baseConfig = defaultProfileConfigs[profile]
+  const baseConfig = {
+    ...defaultProfileConfigs[profile],
+    budget: { ...defaultProfileConfigs[profile].budget, ...config.budget },
+  }
   const overrideConfig = config.profiles?.[profile]
 
   if (!overrideConfig) {
@@ -263,7 +266,7 @@ function getProfileConfig(profile: SchedulerProfile, config: SchedulerConfig): P
   return {
     ...baseConfig,
     ...overrideConfig,
-    budget: { ...baseConfig.budget, ...overrideConfig.budget },
+    budget: { ...baseConfig.budget, ...overrideConfig.budget, ...config.budget },
   }
 }
 
@@ -472,7 +475,7 @@ export function planMaterialization(input: PlanMaterializationInput): SchedulerP
       deferred.push(decision)
     }
 
-    summary[targetMode]++
+    summary[decision.mode]++
   }
 
   return {

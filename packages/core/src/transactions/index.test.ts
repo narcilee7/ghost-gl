@@ -17,9 +17,28 @@ describe('layout transactions', () => {
     expect(result.changed).toBe(true)
     expect(result.nextNodes).toEqual([{ id: 'a', x: 1, y: 0, w: 2, h: 1 }])
     expect(result.inverseOperations).toEqual([
-      { id: 'a', size: { w: 1, h: 1 }, type: 'resize' },
-      { id: 'a', placement: { x: 0, y: 0 }, type: 'move' },
+      { nodes: [{ id: 'a', x: 1, y: 0, w: 1, h: 1 }], type: 'replace' },
+      { nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }], type: 'replace' },
     ])
+  })
+
+  it('restores collision-displaced nodes in inverse operations', () => {
+    const nodes = [
+      { id: 'a', x: 0, y: 0, w: 2, h: 2 },
+      { id: 'b', x: 0, y: 2, w: 2, h: 2 },
+    ]
+
+    const result = applyLayoutTransaction(nodes, [
+      { id: 'a', placement: { x: 0, y: 1 }, type: 'move' },
+    ])
+
+    expect(result.nextNodes).toEqual([
+      { id: 'a', x: 0, y: 1, w: 2, h: 2 },
+      { id: 'b', x: 0, y: 3, w: 2, h: 2 },
+    ])
+
+    const undo = applyLayoutTransaction(result.nextNodes, result.inverseOperations)
+    expect(undo.nextNodes).toEqual(nodes)
   })
 
   it('rejects the whole transaction when one operation fails', () => {

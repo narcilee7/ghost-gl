@@ -218,6 +218,82 @@ describe('internal scheduler', () => {
       expect(plan.deferred.length).toBeGreaterThan(0)
     })
 
+    it('applies top-level budget overrides to the active profile', () => {
+      const plan = planMaterialization({
+        config: {
+          budget: {
+            maxMountsPerFrame: 10,
+            mountBudget: 100,
+          },
+        },
+        nodes: [
+          {
+            id: 'a',
+            mode: 'ghost',
+            mountCost: 10,
+            rect: { left: 0, top: 0, width: 100, height: 100 },
+          },
+          {
+            id: 'b',
+            mode: 'ghost',
+            mountCost: 10,
+            rect: { left: 0, top: 100, width: 100, height: 100 },
+          },
+        ],
+        timestamp: 1_000,
+        viewport: {
+          left: 0,
+          top: 0,
+          width: 300,
+          height: 300,
+        },
+      })
+
+      expect(plan.context.budget.mountBudget).toBe(100)
+      expect(plan.context.budget.maxMountsPerFrame).toBe(10)
+      expect(plan.deferred).toHaveLength(0)
+      expect(plan.summary.live).toBe(2)
+    })
+
+    it('summarizes final decisions after budget deferrals', () => {
+      const plan = planMaterialization({
+        config: {
+          budget: {
+            maxMountsPerFrame: 1,
+            mountBudget: 10,
+          },
+        },
+        nodes: [
+          {
+            id: 'a',
+            mode: 'ghost',
+            mountCost: 10,
+            rect: { left: 0, top: 0, width: 100, height: 100 },
+          },
+          {
+            id: 'b',
+            mode: 'ghost',
+            mountCost: 10,
+            rect: { left: 0, top: 100, width: 100, height: 100 },
+          },
+        ],
+        timestamp: 1_000,
+        viewport: {
+          left: 0,
+          top: 0,
+          width: 300,
+          height: 300,
+        },
+      })
+
+      expect(plan.decisions.map((decision) => decision.mode).sort()).toEqual(['ghost', 'live'])
+      expect(plan.summary).toMatchObject({
+        ghost: 1,
+        live: 1,
+        shell: 0,
+      })
+    })
+
     it('provides trace information when enabled', () => {
       const plan = planMaterialization({
         nodes: [{ id: 'node', mode: 'ghost', rect: { left: 0, top: 0, width: 100, height: 100 } }],
