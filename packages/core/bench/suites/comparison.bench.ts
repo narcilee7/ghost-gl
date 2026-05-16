@@ -4,7 +4,7 @@
  * Head-to-head comparison of core operations.
  */
 
-import { Bench } from 'tinybench'
+import { Bench, type Task } from 'tinybench'
 import {
   applyLayoutOperation,
   applyLayoutTransaction,

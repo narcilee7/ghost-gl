@@ -238,7 +238,14 @@ function findConstraintViolation<T = unknown>(
   nodes: readonly LayoutNode<T>[],
   constraints?: LayoutConstraints
 ): LayoutConstraintViolation | undefined {
+  const seenIds = new Set<string>()
+
   for (const node of nodes) {
+    if (seenIds.has(node.id)) {
+      return { code: 'duplicate_id', id: node.id }
+    }
+    seenIds.add(node.id)
+
     const violation = validateNode(node, constraints)
 
     if (violation != null) {

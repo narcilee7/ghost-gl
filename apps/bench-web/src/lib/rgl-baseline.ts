@@ -1,6 +1,10 @@
 import type { GridMetrics, LayoutNode, Rect } from 'ghost-gl-core'
 
-export function rglViewportQuery(nodes: LayoutNode[], viewport: Rect, metrics: GridMetrics): number {
+export function rglViewportQuery(
+  nodes: LayoutNode[],
+  viewport: Rect,
+  metrics: GridMetrics
+): number {
   const start = performance.now()
   for (const node of nodes) {
     const gapX = metrics.gapX ?? 0

@@ -37,6 +37,9 @@ export class SpatialKernel<T = unknown> {
     const items: SpatialItem<T>[] = []
 
     for (const node of nodes) {
+      if (this.itemById.has(node.id)) {
+        throw new Error(`Node id "${node.id}" must be unique.`)
+      }
       const item = createSpatialItem(node)
       this.itemById.set(node.id, item)
       items.push(item)

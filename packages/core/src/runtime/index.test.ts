@@ -169,6 +169,42 @@ describe('LayoutRuntime', () => {
     })
   })
 
+  it('keeps the spatial kernel synchronized after collision cascades', () => {
+    const runtime = new LayoutRuntime({
+      metrics,
+      nodes: [
+        { id: 'a', x: 0, y: 0, w: 2, h: 2 },
+        { id: 'b', x: 0, y: 2, w: 2, h: 2 },
+      ],
+    })
+
+    expect(runtime.moveNode('a', { x: 0, y: 1 })).toBe(true)
+    expect(runtime.getNode('b')).toMatchObject({ y: 3 })
+    expect(runtime.getSpatialKernel().get('b')?.node).toMatchObject({ y: 3 })
+    expect(runtime.queryCollisions({ x: 0, y: 2, w: 2, h: 1 }).map((node) => node.id)).toEqual([
+      'a',
+    ])
+  })
+
+  it('returns node snapshots instead of mutable runtime references', () => {
+    const runtime = new LayoutRuntime({
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+    })
+
+    const node = runtime.getNode('a')
+    if (node) {
+      node.x = 99
+    }
+    const nodes = runtime.getNodes()
+    const firstNode = nodes[0]
+    if (firstNode) {
+      firstNode.y = 99
+    }
+
+    expect(runtime.getNode('a')).toMatchObject({ x: 0, y: 0 })
+  })
+
   it('rejects illegal operations against configured constraints', () => {
     const runtime = new LayoutRuntime({
       constraints: { columns: 4 },
@@ -370,10 +406,10 @@ describe('LayoutRuntime', () => {
     const materializedA = plan.materialized.find((m) => m.id === 'a')
     expect(materializedA).toBeDefined()
     // (1, 2) with metrics: left = 16 + 1*(100+10) = 126, top = 24 + 2*(80+20) = 224
-    expect(materializedA!.rect.left).toBe(126)
-    expect(materializedA!.rect.top).toBe(224)
-    expect(materializedA!.node.x).toBe(1)
-    expect(materializedA!.node.y).toBe(2)
+    expect(materializedA?.rect.left).toBe(126)
+    expect(materializedA?.rect.top).toBe(224)
+    expect(materializedA?.node.x).toBe(1)
+    expect(materializedA?.node.y).toBe(2)
 
     // Runtime state must remain unchanged
     expect(runtime.getNode('a')).toEqual({ id: 'a', x: 0, y: 0, w: 1, h: 1 })

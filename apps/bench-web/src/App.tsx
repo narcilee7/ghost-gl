@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react'
-import { ResultTable } from './components/ResultTable'
 import { ResultsChart } from './components/ResultsChart'
+import { ResultTable } from './components/ResultTable'
+import { type BenchmarkResult, createTasks, runBenchmark } from './lib/benchmarks'
 import { createFixture, FIXTURE_CONFIGS } from './lib/fixtures'
-import { createTasks, runBenchmark, type BenchmarkResult } from './lib/benchmarks'
 import './App.css'
 
 export function App() {
@@ -73,12 +73,7 @@ export function App() {
           <span className="iteration-value">{iterations}</span>
         </div>
 
-        <button
-          type="button"
-          className="run-button"
-          onClick={handleRun}
-          disabled={isRunning}
-        >
+        <button type="button" className="run-button" onClick={handleRun} disabled={isRunning}>
           {isRunning ? 'Running…' : 'Run Benchmark'}
         </button>
       </section>

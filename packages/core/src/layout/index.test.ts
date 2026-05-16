@@ -45,6 +45,22 @@ describe('layout kernel', () => {
     ])
   })
 
+  it('does not displace static nodes when the active node is pinned', () => {
+    const next = moveNode(
+      [
+        { id: 'static', x: 0, y: 0, w: 2, h: 2, static: true },
+        { id: 'a', x: 0, y: 3, w: 2, h: 2, pinned: true },
+      ],
+      'a',
+      { x: 0, y: 1 }
+    )
+
+    expect(next).toEqual([
+      { id: 'static', x: 0, y: 0, w: 2, h: 2, static: true },
+      { id: 'a', x: 0, y: 2, w: 2, h: 2, pinned: true },
+    ])
+  })
+
   it('cascades resize collisions deterministically', () => {
     const next = resizeNode(
       [

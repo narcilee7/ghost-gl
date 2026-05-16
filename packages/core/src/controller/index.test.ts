@@ -104,10 +104,10 @@ describe('RuntimeController', () => {
     const materializedA = plan.materialized.find((m) => m.id === 'a')
     expect(materializedA).toBeDefined()
     // (1, 2) with metrics: left = 16 + 1*(100+10) = 126, top = 24 + 2*(80+20) = 224
-    expect(materializedA!.rect.left).toBe(126)
-    expect(materializedA!.rect.top).toBe(224)
-    expect(materializedA!.node.x).toBe(1)
-    expect(materializedA!.node.y).toBe(2)
+    expect(materializedA?.rect.left).toBe(126)
+    expect(materializedA?.rect.top).toBe(224)
+    expect(materializedA?.node.x).toBe(1)
+    expect(materializedA?.node.y).toBe(2)
 
     // Runtime state must remain unchanged
     expect(controller.getNode('a')).toEqual({ id: 'a', x: 0, y: 0, w: 1, h: 1 })
@@ -133,6 +133,25 @@ describe('RuntimeController', () => {
     expect(controller.getNodes()).toEqual([{ id: 'a', x: 0, y: 0, w: 1, h: 1 }])
     expect(controller.redo()).toBe(true)
     expect(controller.getNodes()).toEqual([{ id: 'a', x: 1, y: 0, w: 1, h: 1 }])
+  })
+
+  it('records direct API operations in history', () => {
+    const controller = new RuntimeController({
+      metrics,
+      nodes: [{ id: 'a', x: 0, y: 0, w: 1, h: 1 }],
+    })
+    const transactions: string[] = []
+
+    controller.on('transaction', (event) => {
+      transactions.push(`${event.source}:${event.type}`)
+    })
+
+    expect(controller.moveNode('a', 1, 0)).toBe(true)
+    expect(controller.canUndo()).toBe(true)
+    expect(transactions).toEqual(['api:commit'])
+
+    expect(controller.undo()).toBe(true)
+    expect(controller.getNodes()).toEqual([{ id: 'a', x: 0, y: 0, w: 1, h: 1 }])
   })
 
   it('emits subscription events for interaction and committed transactions', () => {

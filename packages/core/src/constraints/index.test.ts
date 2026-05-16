@@ -42,5 +42,12 @@ describe('layout constraints', () => {
     expect(() => assertLayoutNodes([{ id: 'a', x: 4, y: 0, w: 1, h: 1 }], { columns: 4 })).toThrow(
       'exceeds configured columns'
     )
+
+    expect(() =>
+      assertLayoutNodes([
+        { id: 'a', x: 0, y: 0, w: 1, h: 1 },
+        { id: 'a', x: 1, y: 0, w: 1, h: 1 },
+      ])
+    ).toThrow('must be unique')
   })
 })

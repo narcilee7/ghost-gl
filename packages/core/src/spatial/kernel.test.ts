@@ -53,6 +53,16 @@ describe('SpatialKernel', () => {
 
       expect(kernel.size).toBe(4)
     })
+
+    it('should reject duplicate ids', () => {
+      expect(
+        () =>
+          new SpatialKernel([
+            { id: 'a', x: 0, y: 0, w: 1, h: 1 },
+            { id: 'a', x: 1, y: 0, w: 1, h: 1 },
+          ])
+      ).toThrow('must be unique')
+    })
   })
 
   describe('upsert', () => {

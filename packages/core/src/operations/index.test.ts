@@ -75,4 +75,20 @@ describe('layout operations', () => {
     expect(replaced.status).toBe('applied')
     expect(replaced.nextNodes).toEqual([{ id: 'c', x: 0, y: 0, w: 1, h: 1 }])
   })
+
+  it('rejects replacement layouts with duplicate ids', () => {
+    const replaced = applyLayoutOperation([{ id: 'a', x: 0, y: 0, w: 1, h: 1 }], {
+      nodes: [
+        { id: 'dup', x: 0, y: 0, w: 1, h: 1 },
+        { id: 'dup', x: 1, y: 0, w: 1, h: 1 },
+      ],
+      type: 'replace',
+    })
+
+    expect(replaced).toMatchObject({
+      rejectionReason: 'constraint_violation',
+      status: 'rejected',
+      violation: { code: 'duplicate_id', id: 'dup' },
+    })
+  })
 })

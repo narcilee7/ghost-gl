@@ -1,11 +1,11 @@
 import {
   applyLayoutOperation,
+  type GridMetrics,
+  type LayoutConstraints,
+  type LayoutNode,
   LayoutRuntime,
   queryViewport,
-  type LayoutNode,
-  type GridMetrics,
   type Rect,
-  type LayoutConstraints,
 } from 'ghost-gl-core'
 import { rglCollisionDetect, rglMoveNode, rglViewportQuery } from './rgl-baseline'
 
@@ -38,7 +38,10 @@ export function createTasks(
       ghostgl: () => {
         const s = performance.now()
         const runtime = new LayoutRuntime({ nodes, metrics, constraints })
-        runtime.queryCollisions({ x: focusNode.x, y: focusNode.y, w: focusNode.w, h: focusNode.h }, focusNode.id)
+        runtime.queryCollisions(
+          { x: focusNode.x, y: focusNode.y, w: focusNode.w, h: focusNode.h },
+          focusNode.id
+        )
         return performance.now() - s
       },
       rgl: () => rglCollisionDetect(nodes, focusNode),
