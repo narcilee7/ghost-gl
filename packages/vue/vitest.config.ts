@@ -1,7 +1,9 @@
 import path from 'node:path'
+import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  plugins: [vue()],
   resolve: {
     alias: {
       'ghost-gl-core': path.resolve(__dirname, '../core/src/index.ts'),
@@ -11,6 +13,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
+    include: ['src/**/*.test.ts'],
   },
 })

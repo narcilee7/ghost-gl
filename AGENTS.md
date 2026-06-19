@@ -57,8 +57,24 @@ pnpm bench          # Run benchmarks
 ## Package Naming
 
 - Core: `ghost-gl-core`
+- Adapter Core: `ghost-gl-adapter-core` (framework-agnostic host bridge)
 - React: `ghost-gl-react`
 - Vue: `ghost-gl-vue`
+- React Native: `ghost-gl-react-native`
+- Lynx: `ghost-gl-lynx`
+
+## Adapter Architecture
+
+All framework adapters are thin wrappers around `ghost-gl-adapter-core`, which owns the `RuntimeController` lifecycle, viewport materialization, and drag/resize interactions.
+
+A new adapter only needs to:
+
+1. Create a `GridHost` via `createGridHost(options)`.
+2. Wire framework scroll/layout events to `host.setViewport(...)`.
+3. Wire framework pointer/gesture events to `host.beginDrag/updateDrag/endDrag/cancelDrag`.
+4. Subscribe to `host.subscribe(...)` and render `host.materialized` using the framework's native components.
+
+See `packages/adapter-core/src/index.ts` for the host API and `packages/react/src` for the reference implementation.
 
 ## Release Process
 

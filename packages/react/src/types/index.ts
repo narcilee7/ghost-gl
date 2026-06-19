@@ -1,3 +1,4 @@
+import type { GridHost } from 'ghost-gl-adapter-core'
 import type {
   GridMetrics,
   LayoutNode,
@@ -135,6 +136,8 @@ export interface UseGhostGridOptions<T = unknown> {
  * Return value of the useGhostGrid hook
  */
 export interface UseGhostGridReturn<T = unknown> {
+  /** The framework-agnostic grid host */
+  host: GridHost<T> | null
   /** The runtime controller instance */
   controller: RuntimeController<T> | null
   /** Current grid state */
@@ -174,6 +177,8 @@ export interface GhostGridRef<T = unknown> {
  * Context value for GhostGridContext
  */
 export interface GhostGridContextValue<T = unknown> {
+  /** The framework-agnostic grid host */
+  host: GridHost<T> | null
   /** The runtime controller */
   controller: RuntimeController<T> | null
   /** Current state */
@@ -221,12 +226,10 @@ export interface GhostGridDndProviderProps {
   onDragStart?: (nodeId: string) => void
   /** Callback when drag ends */
   onDragEnd?: (nodeId: string, x: number, y: number) => void
-  /** Optional controller - if not provided, will use context */
-  controller?: import('ghost-gl-core').RuntimeController<unknown>
+  /** Optional grid host - if not provided, will use context */
+  host?: GridHost<unknown>
   /** Optional container ref - if not provided, will use context */
   containerRef?: import('react').RefObject<HTMLElement | null>
-  /** Optional metrics - if not provided, will use context */
-  metrics?: import('ghost-gl-core').GridMetrics
 }
 
 /**

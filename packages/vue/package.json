@@ -1,7 +1,7 @@
 {
-  "name": "ghost-gl-react",
+  "name": "ghost-gl-vue",
   "version": "0.0.0",
-  "description": "React host package for ghost-gl.",
+  "description": "Vue 3 host package for ghost-gl.",
   "license": "MIT",
   "private": true,
   "type": "module",
@@ -28,21 +28,21 @@
     "ghost-gl-core": "workspace:*"
   },
   "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
+    "vue": "^3.4.0"
   },
   "scripts": {
-    "build": "tsup src/index.ts --clean --dts --format esm,cjs",
+    "build": "vite build",
     "clean": "rimraf coverage dist",
-    "lint": "biome check package.json src tsconfig.json",
-    "lint:fix": "biome check package.json src tsconfig.json --write",
+    "lint": "biome check package.json src tsconfig.json vite.config.ts",
+    "lint:fix": "biome check package.json src tsconfig.json vite.config.ts --write",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "happy-dom": "^20.8.9",
-    "jsdom": "^29.0.1"
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/test-utils": "^2.4.6",
+    "vite": "^6.3.0",
+    "vite-plugin-dts": "^4.5.0",
+    "vue-tsc": "^2.2.0"
   }
 }

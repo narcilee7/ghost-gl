@@ -1,6 +1,6 @@
 /**
  * Basic Usage Example
- * 
+ *
  * This example demonstrates the fundamental ghost-gl workflow:
  * - Creating a layout runtime
  * - Subscribing to state changes
@@ -9,7 +9,7 @@
  */
 
 import {
-  LayoutNode,
+  type LayoutNode,
   LayoutRuntime,
   MaterializationMode,
   RuntimeController,

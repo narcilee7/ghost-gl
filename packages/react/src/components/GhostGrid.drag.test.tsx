@@ -3,6 +3,25 @@ import { describe, expect, it, vi } from 'vitest'
 import { useGhostGridDrag } from '../hooks/useGhostGridDrag'
 import { GhostGrid } from './GhostGrid'
 
+function mockContainerSize(width = 1200, height = 800) {
+  const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect
+  Element.prototype.getBoundingClientRect = vi.fn(() => ({
+    bottom: height,
+    height,
+    left: 0,
+    right: width,
+    top: 0,
+    width,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+  }))
+
+  return () => {
+    Element.prototype.getBoundingClientRect = originalGetBoundingClientRect
+  }
+}
+
 describe('GhostGrid Drag and Drop', () => {
   // Simple draggable item component for testing
   function TestDraggableItem({
@@ -134,6 +153,7 @@ describe('GhostGrid Drag and Drop', () => {
   })
 
   it('should complete drag lifecycle (down, move, up)', async () => {
+    const restoreSize = mockContainerSize()
     const onStateChange = vi.fn()
     const initialNodes = [{ id: '1', x: 0, y: 0, w: 3, h: 3, data: { title: 'Widget A' } }]
 
@@ -179,5 +199,7 @@ describe('GhostGrid Drag and Drop', () => {
     await waitFor(() => {
       expect(item.getAttribute('data-dragging')).toBe('false')
     })
+
+    restoreSize()
   })
 })

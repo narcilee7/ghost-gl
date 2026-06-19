@@ -107,9 +107,7 @@ describe('useGhostGrid', () => {
         kind: 'drag',
         targetId: 'a',
       })
-      controller.previewInteraction([
-        { id: 'a', placement: { x: 5, y: 0 }, type: 'move' },
-      ])
+      controller.previewInteraction([{ id: 'a', placement: { x: 5, y: 0 }, type: 'move' }])
     })
 
     await waitFor(() => {

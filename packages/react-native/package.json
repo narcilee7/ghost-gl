@@ -1,14 +1,12 @@
 {
-  "name": "ghost-gl-react",
+  "name": "ghost-gl-react-native",
   "version": "0.0.0",
-  "description": "React host package for ghost-gl.",
+  "description": "React Native host package for ghost-gl.",
   "license": "MIT",
   "private": true,
   "type": "module",
   "sideEffects": false,
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -29,7 +27,7 @@
   },
   "peerDependencies": {
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-native": ">=0.74.0"
   },
   "scripts": {
     "build": "tsup src/index.ts --clean --dts --format esm,cjs",
@@ -40,9 +38,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "happy-dom": "^20.8.9",
-    "jsdom": "^29.0.1"
+    "@types/react": "^19.2.1",
+    "@types/react-native": "^0.73.0"
   }
 }

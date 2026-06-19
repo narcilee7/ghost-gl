@@ -1,6 +1,6 @@
 'use client'
 
-import type { RuntimeController } from 'ghost-gl-core'
+import type { GridHost } from 'ghost-gl-adapter-core'
 import {
   createContext,
   type RefObject,
@@ -47,7 +47,7 @@ export function useGhostGridDnd(): GhostGridDndContextValue {
  *
  * 2. Outside GhostGrid (provide values via props):
  * ```tsx
- * <GhostGridDndProvider controller={controller} containerRef={containerRef} metrics={metrics}>
+ * <GhostGridDndProvider host={host} containerRef={containerRef}>
  *   <GhostGrid {...props} />
  * </GhostGridDndProvider>
  * ```
@@ -58,16 +58,14 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
     enabled = true,
     onDragStart,
     onDragEnd,
-    controller: controllerProp,
+    host: hostProp,
     containerRef: containerRefProp,
-    metrics: metricsProp,
   } = props
 
   // Try to get from context, fallback to props
   const context = useContext(GhostGridContext)
-  const controller = (controllerProp ?? context?.controller) as RuntimeController<unknown> | null
+  const host = (hostProp ?? context?.host) as GridHost<unknown> | null
   const containerRef = (containerRefProp ?? context?.containerRef) as RefObject<HTMLElement | null>
-  const metrics = metricsProp ?? context?.metrics
 
   const [isDragging, setIsDragging] = useState(false)
   const [draggedNodeId, setDraggedNodeId] = useState<string | null>(null)
@@ -84,20 +82,9 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
     draggedNodeIdRef.current = draggedNodeId
   }, [draggedNodeId])
 
-  // Refs for tracking drag state
-  const dragStartPos = useRef<{ x: number; y: number } | null>(null)
-  const dragOffset = useRef<{ x: number; y: number } | null>(null)
-  const lastGridPos = useRef<{ x: number; y: number } | null>(null)
-
-  // Ref for controller to avoid dependency issues
-  const controllerRef = useRef(controller)
-  useEffect(() => {
-    controllerRef.current = controller
-  }, [controller])
-
   // Refs to access latest values without triggering re-renders
   const containerRefRef = useRef(containerRef)
-  const metricsRef = useRef(metrics)
+  const hostRef = useRef(host)
 
   // Update refs when props/context change
   useEffect(() => {
@@ -105,144 +92,95 @@ export function GhostGridDndProvider(props: GhostGridDndProviderProps): React.JS
   }, [containerRef])
 
   useEffect(() => {
-    metricsRef.current = metrics
-  }, [metrics])
+    hostRef.current = host
+  }, [host])
 
-  // Calculate grid position from pointer coordinates
-  const pointerToGrid = useCallback(
-    (pointerX: number, pointerY: number): { x: number; y: number } | null => {
+  // Calculate pointer position relative to container content
+  const clientToContainer = useCallback(
+    (clientX: number, clientY: number): { x: number; y: number } | null => {
       const currentContainerRef = containerRefRef.current
-      const currentMetrics = metricsRef.current
-
-      if (!currentContainerRef?.current || !currentMetrics) return null
+      if (!currentContainerRef?.current) return null
 
       const container = currentContainerRef.current
       const rect = container.getBoundingClientRect()
       const scrollLeft = container.scrollLeft
       const scrollTop = container.scrollTop
 
-      // Calculate position relative to container content
-      const relativeX = pointerX - rect.left + scrollLeft
-      const relativeY = pointerY - rect.top + scrollTop
-
-      // Convert to grid coordinates
-      const {
-        columnWidth,
-        rowHeight,
-        gapX = 0,
-        gapY = 0,
-        paddingLeft = 0,
-        paddingTop = 0,
-      } = currentMetrics
-
-      const adjustedX = relativeX - paddingLeft
-      const adjustedY = relativeY - paddingTop
-
-      // Account for gaps in grid calculation
-      const x = Math.floor((adjustedX + gapX / 2) / (columnWidth + gapX))
-      const y = Math.floor((adjustedY + gapY / 2) / (rowHeight + gapY))
-
-      return { x: Math.max(0, x), y: Math.max(0, y) }
+      return {
+        x: clientX - rect.left + scrollLeft,
+        y: clientY - rect.top + scrollTop,
+      }
     },
     []
   )
 
   const startDrag = useCallback(
-    (nodeId: string, pointerX: number, pointerY: number) => {
-      const currentController = controllerRef.current
-      if (!enabled || !currentController) return
+    (nodeId: string, clientX: number, clientY: number) => {
+      const currentHost = hostRef.current
+      if (!enabled || !currentHost) return
 
-      const node = currentController.getNode(nodeId)
+      const node = currentHost.controller.getNode(nodeId)
       if (!node || node.static) return
 
-      // Get current grid position
-      const gridPos = pointerToGrid(pointerX, pointerY)
-      if (!gridPos) return
+      const pointer = clientToContainer(clientX, clientY)
+      if (pointer == null) return
 
-      // Store drag start info
-      dragStartPos.current = { x: pointerX, y: pointerY }
-      dragOffset.current = {
-        x: gridPos.x - node.x,
-        y: gridPos.y - node.y,
-      }
-      lastGridPos.current = { x: node.x, y: node.y }
-
-      // Begin interaction in controller
-      currentController.beginInteraction({
-        id: `drag-${Date.now()}`,
-        kind: 'drag',
-        targetId: nodeId,
+      const started = currentHost.beginDrag({
+        nodeId,
+        pointerX: pointer.x,
+        pointerY: pointer.y,
       })
+
+      if (!started) return
 
       setDraggedNodeId(nodeId)
       setIsDragging(true)
       onDragStart?.(nodeId)
     },
-    [enabled, pointerToGrid, onDragStart]
+    [enabled, clientToContainer, onDragStart]
   )
 
   const updateDrag = useCallback(
-    (pointerX: number, pointerY: number) => {
-      const currentController = controllerRef.current
-      if (!isDraggingRef.current || !currentController || !draggedNodeIdRef.current || !dragOffset.current) return
+    (clientX: number, clientY: number) => {
+      const currentHost = hostRef.current
+      if (!isDraggingRef.current || !currentHost) return
 
-      const gridPos = pointerToGrid(pointerX, pointerY)
-      if (!gridPos) return
+      const pointer = clientToContainer(clientX, clientY)
+      if (pointer == null) return
 
-      // Calculate new grid position with offset
-      const newX = gridPos.x - dragOffset.current.x
-      const newY = gridPos.y - dragOffset.current.y
-
-      // Only update if position changed
-      if (lastGridPos.current?.x !== newX || lastGridPos.current?.y !== newY) {
-        lastGridPos.current = { x: newX, y: newY }
-
-        // Preview the move operation
-        currentController.previewInteraction([
-          {
-            id: draggedNodeIdRef.current,
-            placement: { x: newX, y: newY },
-            type: 'move',
-          },
-        ])
-      }
+      currentHost.updateDrag({
+        pointerX: pointer.x,
+        pointerY: pointer.y,
+      })
     },
-    // All mutable state accessed via refs; pointerToGrid is stable
-    [pointerToGrid]
+    [clientToContainer]
   )
 
   const endDrag = useCallback(() => {
-    const currentController = controllerRef.current
-    if (!isDraggingRef.current || !currentController) return
+    const currentHost = hostRef.current
+    if (!isDraggingRef.current || !currentHost) return
 
-    // Commit the interaction
-    currentController.commitInteraction()
+    currentHost.endDrag()
 
-    if (draggedNodeIdRef.current && lastGridPos.current) {
-      onDragEnd?.(draggedNodeIdRef.current, lastGridPos.current.x, lastGridPos.current.y)
+    if (draggedNodeIdRef.current) {
+      const node = currentHost.controller.getNode(draggedNodeIdRef.current)
+      if (node) {
+        onDragEnd?.(draggedNodeIdRef.current, node.x, node.y)
+      }
     }
 
-    // Reset state
     setIsDragging(false)
     setDraggedNodeId(null)
-    dragStartPos.current = null
-    dragOffset.current = null
-    lastGridPos.current = null
   }, [onDragEnd])
 
   const cancelDrag = useCallback(() => {
-    const currentController = controllerRef.current
-    if (!isDraggingRef.current || !currentController) return
+    const currentHost = hostRef.current
+    if (!isDraggingRef.current || !currentHost) return
 
-    // Cancel the interaction
-    currentController.cancelInteraction()
+    currentHost.cancelDrag()
 
-    // Reset state
     setIsDragging(false)
     setDraggedNodeId(null)
-    dragStartPos.current = null
-    dragOffset.current = null
-    lastGridPos.current = null
   }, [])
 
   const value = useMemo<GhostGridDndContextValue>(

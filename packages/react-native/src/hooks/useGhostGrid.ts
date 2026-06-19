@@ -1,21 +1,23 @@
-'use client'
-
 import { createGridHost, type GridHost } from 'ghost-gl-adapter-core'
 import type {
   GridMetrics,
+  LayoutNode,
   MaterializedNode,
   Rect,
   RuntimeController,
   RuntimeControllerState,
 } from 'ghost-gl-core'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { UseGhostGridOptions, UseGhostGridReturn } from '../types'
+import type {
+  UseGhostGridOptions,
+  UseGhostGridReturn,
+} from '../types'
 
 /**
- * Hook for creating and managing a ghost-gl grid instance.
+ * Hook for creating and managing a ghost-gl grid instance in React Native.
  *
  * This hook creates a framework-agnostic {@link GridHost} via
- * `ghost-gl-adapter-core` and wires it to a DOM container for viewport tracking.
+ * `ghost-gl-adapter-core` and wires it to a container for viewport tracking.
  */
 export function useGhostGrid<T = unknown>(
   options: UseGhostGridOptions<T> = {}
@@ -40,8 +42,10 @@ export function useGhostGrid<T = unknown>(
   const [state, setState] = useState<RuntimeControllerState<T> | null>(null)
   const [isReady, setIsReady] = useState(false)
 
+  // Store container size locally since RN doesn't have resize events
+  const containerSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 })
+
   // Initialize host once on mount
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally runs only once to initialize singleton host
   useEffect(() => {
     unmountingRef.current = false
 
@@ -84,34 +88,17 @@ export function useGhostGrid<T = unknown>(
     }
   }, [])
 
-  // Track container scroll/resize and feed viewport to the host
-  useEffect(() => {
-    if (!containerRef?.current || !hostRef.current) return
+  // Handle container layout changes
+  // RN uses onLayout, so we expose a setContainerSize method
+  const setContainerSize = useCallback((size: { width: number; height: number }) => {
+    containerSizeRef.current = size
+    hostRef.current?.setContainerSize(size)
+  }, [])
 
-    const container = containerRef.current
-    const host = hostRef.current
-
-    const update = () => {
-      const rect = container.getBoundingClientRect()
-      host.setContainerSize({ width: rect.width, height: rect.height })
-      host.setViewport({
-        left: container.scrollLeft,
-        top: container.scrollTop,
-        width: rect.width,
-        height: rect.height,
-      })
-    }
-
-    update()
-
-    container.addEventListener('scroll', update, { passive: true })
-    window.addEventListener('resize', update)
-
-    return () => {
-      container.removeEventListener('scroll', update)
-      window.removeEventListener('resize', update)
-    }
-  }, [containerRef])
+  // Handle viewport updates from ScrollView
+  const setViewport = useCallback((viewport: Rect) => {
+    hostRef.current?.setViewport(viewport)
+  }, [])
 
   const updateViewport = useCallback((viewport: Rect) => {
     hostRef.current?.setViewport(viewport)
@@ -140,11 +127,13 @@ export function useGhostGrid<T = unknown>(
     host: hostRef.current,
     controller: hostRef.current?.controller ?? (null as RuntimeController<T> | null),
     state,
-    nodes: state?.nodes ?? [],
+    nodes: state?.nodes ?? ([] as readonly LayoutNode<T>[]),
     materialized,
     bounds: state?.bounds ?? null,
     metrics,
     isReady,
+    setContainerSize,
+    setViewport,
     updateViewport,
     moveNode,
     resizeNode,
