@@ -10,15 +10,19 @@ ghost-gl is a high-performance virtualized grid layout engine designed for **hea
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Host (React/Vue)                        │
+│              Host (React / Vue / RN / Lynx)                    │
 ├─────────────────────────────────────────────────────────────┤
-│  RuntimeController  │  InteractionManager  │  HistoryManager │
-├─────────────────────┴──────────────────────┴────────────────┤
+│                   ghost-gl-adapter-core                      │
+│              (createGridHost - framework agnostic)             │
+├─────────────────────────────────────────────────────────────┤
+│                      ghost-gl-core                          │
+│  RuntimeController  │  SpatialKernel  │  Scheduler         │
+├─────────────────────┴──────────────────┴─────────────────┤
 │                    LayoutRuntime (facade)                    │
 ├─────────────────────────────────────────────────────────────┤
 │  LayoutEngine       │  SpatialKernel       │  Scheduler      │
 │  - collision resolve│  - RBush R-tree      │  - 3-state      │
-│  - compact          │  - O(log n) queries  │  - budget-driven│
+│  - compact          │  - O(log n) queries │  - budget-driven│
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -38,30 +42,18 @@ ghost-gl is a high-performance virtualized grid layout engine designed for **hea
 - `packages/core/src/internal/scheduler.ts` - Materialization scheduler
 - `packages/core/src/layout.ts` - Layout engine
 - `packages/core/src/transactions.ts` - Transaction system
-
-## Testing
-
-```bash
-pnpm test           # Run all tests
-pnpm test:watch     # Watch mode
-pnpm bench          # Run benchmarks
-```
-
-## Code Style
-
-- TypeScript strict mode enabled
-- Biome for linting/formatting
-- Co-located tests (`feature.test.ts` alongside `feature.ts`)
-- Conventional commits
+- `packages/adapter-core/src/host.ts` - Framework-agnostic GridHost
 
 ## Package Naming
 
-- Core: `ghost-gl-core`
-- Adapter Core: `ghost-gl-adapter-core` (framework-agnostic host bridge)
-- React: `ghost-gl-react`
-- Vue: `ghost-gl-vue`
-- React Native: `ghost-gl-react-native`
-- Lynx: `ghost-gl-lynx`
+| Package | Status | Description |
+|---------|--------|-------------|
+| `ghost-gl-core` | ✅ Production | Core layout engine |
+| `ghost-gl-adapter-core` | ✅ Production | Framework-agnostic host bridge |
+| `ghost-gl-react` | ✅ Production | React adapter |
+| `ghost-gl-vue` | ✅ Production | Vue 3 adapter |
+| `ghost-gl-react-native` | 🚧 Dev | React Native adapter |
+| `ghost-gl-lynx` | 🚧 Dev | Lynx adapter |
 
 ## Adapter Architecture
 
@@ -76,9 +68,51 @@ A new adapter only needs to:
 
 See `packages/adapter-core/src/index.ts` for the host API and `packages/react/src` for the reference implementation.
 
+## Testing
+
+```bash
+pnpm test           # Run all tests
+pnpm test:watch     # Watch mode
+pnpm bench          # Run benchmarks
+pnpm test --filter ghost-gl-core  # Single package
+```
+
+## Code Style
+
+- TypeScript strict mode enabled
+- Biome for linting/formatting
+- Co-located tests (`feature.test.ts` alongside `feature.ts`)
+- Conventional commits
+
+## Project Structure
+
+```
+packages/
+├── core/              # Core layout engine
+├── adapter-core/      # Framework-agnostic host bridge
+├── react/            # React adapter
+├── vue/              # Vue 3 adapter
+├── react-native/     # React Native adapter (in dev)
+└── lynx/            # Lynx adapter (in dev)
+
+apps/
+└── bench-web/       # Browser benchmark dashboard
+
+docs/                 # Documentation site (rspress)
+
+examples/
+├── react/            # React examples
+├── vue/              # Vue examples
+├── react-native/     # RN examples
+└── lynx/            # Lynx examples
+
+e2e/                 # E2E tests (Playwright)
+```
+
 ## Release Process
 
 Uses Changesets for version management:
+
 1. `pnpm changeset` - Create changeset
 2. `pnpm release:version` - Version packages
 3. `pnpm release:publish` - Publish to npm
