@@ -162,7 +162,9 @@ export interface UseGhostGridDragReturn {
   /** Set the grid host (called by GhostGrid) */
   setHost: (host: GridHost | null) => void
   /** Set the container ref for coordinate transformation */
-  setContainerRef: (ref: { current: { scrollLeft: number; scrollTop: number } | null } | null) => void
+  setContainerRef: (
+    ref: { current: { scrollLeft: number; scrollTop: number } | null } | null
+  ) => void
 }
 
 /**

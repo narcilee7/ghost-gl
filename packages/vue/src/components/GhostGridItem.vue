@@ -7,7 +7,7 @@ const props = defineProps<GhostGridItemRenderProps<T>>()
 
 const hostRef = inject(GhostGridHostKey, null)
 
-const context = computed<GhostGridItemRenderContext<T>>(() => ({
+const _context = computed<GhostGridItemRenderContext<T>>(() => ({
   isDragging:
     hostRef?.value?.controller.getInteractionSession()?.targetId === props.materializedNode.id,
   isResizing: false,
@@ -31,8 +31,8 @@ const context = computed<GhostGridItemRenderContext<T>>(() => ({
       width: `${props.materializedNode.rect.width}px`,
     }"
   >
-    <slot v-bind="context">
-      <component :is="() => props.renderItem(context)" />
+    <slot v-bind="_context">
+      <component :is="() => props.renderItem(_context)" />
     </slot>
   </div>
 </template>

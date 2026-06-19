@@ -1,6 +1,6 @@
 import { createGridHost, type GridHost } from 'ghost-gl-adapter-core'
 import type { ControllerAPI, Rect, RuntimeControllerState } from 'ghost-gl-core'
-import { computed, onScopeDispose, type Ref, ref, shallowRef, watch } from 'vue'
+import { computed, onScopeDispose, ref, shallowRef, watch } from 'vue'
 import type { UseGhostGridOptions, UseGhostGridReturn } from '../types'
 
 /**

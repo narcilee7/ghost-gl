@@ -1,37 +1,94 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { GhostGrid } from 'ghost-gl-vue'
-import type { LayoutNode, RuntimeControllerState } from 'ghost-gl-core'
+import type { LayoutNode, RuntimeControllerState } from "ghost-gl-core";
+import { ref } from "vue";
 
 interface WidgetData {
-  title: string
-  type: string
+  title: string;
+  type: string;
 }
 
-const stats = ref<RuntimeControllerState<WidgetData> | null>(null)
+const stats = ref<RuntimeControllerState<WidgetData> | null>(null);
 
 // Initial grid items
 const initialNodes: LayoutNode<WidgetData>[] = [
-  { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Revenue Chart', type: 'chart' } },
-  { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Active Users', type: 'metric' } },
-  { id: '3', x: 8, y: 0, w: 4, h: 3, data: { title: 'Conversion Rate', type: 'metric' } },
-  { id: '4', x: 0, y: 3, w: 6, h: 4, data: { title: 'Sales Overview', type: 'chart' } },
-  { id: '5', x: 6, y: 3, w: 6, h: 4, data: { title: 'Recent Orders', type: 'table' } },
-  { id: '6', x: 0, y: 7, w: 3, h: 3, data: { title: 'Traffic Sources', type: 'pie' } },
-  { id: '7', x: 3, y: 7, w: 3, h: 3, data: { title: 'Bounce Rate', type: 'metric' } },
-  { id: '8', x: 6, y: 7, w: 6, h: 3, data: { title: 'Customer Feedback', type: 'list' } },
-]
+  {
+    id: "1",
+    x: 0,
+    y: 0,
+    w: 4,
+    h: 3,
+    data: { title: "Revenue Chart", type: "chart" },
+  },
+  {
+    id: "2",
+    x: 4,
+    y: 0,
+    w: 4,
+    h: 3,
+    data: { title: "Active Users", type: "metric" },
+  },
+  {
+    id: "3",
+    x: 8,
+    y: 0,
+    w: 4,
+    h: 3,
+    data: { title: "Conversion Rate", type: "metric" },
+  },
+  {
+    id: "4",
+    x: 0,
+    y: 3,
+    w: 6,
+    h: 4,
+    data: { title: "Sales Overview", type: "chart" },
+  },
+  {
+    id: "5",
+    x: 6,
+    y: 3,
+    w: 6,
+    h: 4,
+    data: { title: "Recent Orders", type: "table" },
+  },
+  {
+    id: "6",
+    x: 0,
+    y: 7,
+    w: 3,
+    h: 3,
+    data: { title: "Traffic Sources", type: "pie" },
+  },
+  {
+    id: "7",
+    x: 3,
+    y: 7,
+    w: 3,
+    h: 3,
+    data: { title: "Bounce Rate", type: "metric" },
+  },
+  {
+    id: "8",
+    x: 6,
+    y: 7,
+    w: 6,
+    h: 3,
+    data: { title: "Customer Feedback", type: "list" },
+  },
+];
 
 const handleStateChange = (state: RuntimeControllerState<WidgetData>) => {
-  stats.value = state
-}
+  stats.value = state;
+};
 </script>
 
 <template>
   <div class="example-container">
     <div class="example-header">
       <h2>Basic GhostGrid (Vue)</h2>
-      <p>A simple grid layout with three-state materialization (ghost/shell/live)</p>
+      <p>
+        A simple grid layout with three-state materialization (ghost/shell/live)
+      </p>
     </div>
 
     <div class="grid-container" style="height: 500px">
@@ -50,11 +107,14 @@ const handleStateChange = (state: RuntimeControllerState<WidgetData>) => {
           </div>
           <div v-else-if="mode === 'live'" class="grid-item">
             <div class="grid-item-header">
-              <span class="title">{{ node.data?.title ?? 'Untitled' }}</span>
+              <span class="title">{{ node.data?.title ?? "Untitled" }}</span>
             </div>
             <div class="grid-item-content">
-              <p>{{ node.data?.type ?? 'unknown' }}</p>
-              <small>{{ rect.width.toFixed(0) }} × {{ rect.height.toFixed(0) }}</small>
+              <p>{{ node.data?.type ?? "unknown" }}</p>
+              <small
+                >{{ rect.width.toFixed(0) }} ×
+                {{ rect.height.toFixed(0) }}</small
+              >
             </div>
           </div>
         </template>
@@ -70,11 +130,15 @@ const handleStateChange = (state: RuntimeControllerState<WidgetData>) => {
         </div>
         <div class="stat-item">
           <span class="stat-label">Grid Height:</span>
-          <span class="stat-value">{{ stats.bounds?.height.toFixed(0) }}px</span>
+          <span class="stat-value"
+            >{{ stats.bounds?.height.toFixed(0) }}px</span
+          >
         </div>
         <div class="stat-item">
           <span class="stat-label">Column Width:</span>
-          <span class="stat-value">{{ stats.metrics?.columnWidth.toFixed(1) }}px</span>
+          <span class="stat-value"
+            >{{ stats.metrics?.columnWidth.toFixed(1) }}px</span
+          >
         </div>
       </div>
     </div>

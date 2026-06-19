@@ -8,10 +8,7 @@ import type {
   RuntimeControllerState,
 } from 'ghost-gl-core'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type {
-  UseGhostGridOptions,
-  UseGhostGridReturn,
-} from '../types'
+import type { UseGhostGridOptions, UseGhostGridReturn } from '../types'
 
 /**
  * Hook for creating and managing a ghost-gl grid instance in React Native.
@@ -46,6 +43,7 @@ export function useGhostGrid<T = unknown>(
   const containerSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 })
 
   // Initialize host once on mount
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     unmountingRef.current = false
 
@@ -86,7 +84,18 @@ export function useGhostGrid<T = unknown>(
       host.dispose()
       hostRef.current = null
     }
-  }, [])
+  }, [
+    columns,
+    debounceMs,
+    gapX,
+    gapY,
+    initialNodes,
+    overscan,
+    paddingLeft,
+    paddingTop,
+    policy,
+    rowHeight,
+  ])
 
   // Handle container layout changes
   // RN uses onLayout, so we expose a setContainerSize method

@@ -1,3 +1,5 @@
+import type { ScrollViewProps } from '@lynx-js/lynx-ui-scroll-view'
+import type { CSSProperties } from '@lynx-js/types'
 import type { GridHost } from 'ghost-gl-adapter-core'
 import type {
   ControllerAPI,
@@ -8,9 +10,7 @@ import type {
   Rect,
   RuntimeControllerState,
 } from 'ghost-gl-core'
-import type { CSSProperties } from '@lynx-js/types'
-import type { ScrollViewProps } from '@lynx-js/lynx-ui-scroll-view'
-import type { ReactNode, ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
 /**
  * Render context passed to the renderItem function.
@@ -165,7 +165,9 @@ export interface UseGhostGridDragReturn {
   /** Set the grid host (called by GhostGrid) */
   setHost: (host: GridHost | null) => void
   /** Set the container ref for coordinate transformation */
-  setContainerRef: (ref: { current: { scrollLeft: number; scrollTop: number } | null } | null) => void
+  setContainerRef: (
+    ref: { current: { scrollLeft: number; scrollTop: number } | null } | null
+  ) => void
 }
 
 /**

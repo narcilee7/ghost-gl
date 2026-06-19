@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<GhostGridSkeletonProps>(), {
 const toStyleValue = (value: number | string): string =>
   typeof value === 'number' ? `${value}px` : value
 
-const baseStyle = computed(() => ({
+const _baseStyle = computed(() => ({
   backgroundColor: props.backgroundColor,
   borderRadius: toStyleValue(props.borderRadius),
   height: toStyleValue(props.height),
@@ -39,13 +39,13 @@ const baseStyle = computed(() => ({
   width: toStyleValue(props.width),
 }))
 
-const animationClass = computed(() => {
+const _animationClass = computed(() => {
   if (props.animation === 'pulse') return 'ghost-gl-pulse'
   if (props.animation === 'wave') return 'ghost-gl-wave'
   return ''
 })
 
-const waveStyle = computed(() =>
+const _waveStyle = computed(() =>
   props.animation === 'wave'
     ? {
         background: `linear-gradient(90deg, ${props.backgroundColor} 25%, ${props.highlightColor} 50%, ${props.backgroundColor} 75%)`,
@@ -57,8 +57,8 @@ const waveStyle = computed(() =>
 
 <template>
   <div
-    :class="[props.class, animationClass]"
-    :style="{ ...baseStyle, ...waveStyle }"
+    :class="[props.class, _animationClass]"
+    :style="{ ..._baseStyle, ..._waveStyle }"
     data-ghost-skeleton=""
   />
 </template>

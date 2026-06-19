@@ -14,23 +14,26 @@ import type { UseGhostGridDragOptions, UseGhostGridDragReturn } from '../types'
  * <element onclick={() => startDrag(event.locationX, event.locationY)}>
  * ```
  */
-export function useGhostGridDrag(
-  options: UseGhostGridDragOptions
-): UseGhostGridDragReturn {
+export function useGhostGridDrag(options: UseGhostGridDragOptions): UseGhostGridDragReturn {
   const { nodeId, disabled = false } = options
 
   // Use refs to track dragging state so event handlers always see current values
   const isDraggingRef = useRef(false)
   const hostRef = useRef<GridHost | null>(null)
-  const containerRef = useRef<{ current: { scrollLeft: number; scrollTop: number } | null }>({ current: null })
+  const containerRef = useRef<{ current: { scrollLeft: number; scrollTop: number } | null }>({
+    current: null,
+  })
 
   const setHost = useCallback((host: GridHost | null) => {
     hostRef.current = host
   }, [])
 
-  const setContainerRef = useCallback((ref: { current: { scrollLeft: number; scrollTop: number } | null } | null) => {
-    containerRef.current = ref ?? { current: null }
-  }, [])
+  const setContainerRef = useCallback(
+    (ref: { current: { scrollLeft: number; scrollTop: number } | null } | null) => {
+      containerRef.current = ref ?? { current: null }
+    },
+    []
+  )
 
   // Calculate pointer position relative to container content
   const clientToContainer = useCallback(

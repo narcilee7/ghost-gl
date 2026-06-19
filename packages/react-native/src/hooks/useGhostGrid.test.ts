@@ -1,7 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
-import { useGhostGrid } from './useGhostGrid'
+import { act, renderHook } from '@testing-library/react'
 import type { LayoutNode } from 'ghost-gl-core'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { useGhostGrid } from './useGhostGrid'
 
 // Mock the createGridHost function
 vi.mock('ghost-gl-adapter-core', () => ({
@@ -71,18 +71,14 @@ describe('useGhostGrid', () => {
   })
 
   it('should accept initial nodes', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     // Note: nodes will be populated after host subscription
     expect(result.current.host).not.toBeNull()
   })
 
   it('should set container size', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     act(() => {
       result.current.setContainerSize?.({ width: 375, height: 812 })
@@ -92,9 +88,7 @@ describe('useGhostGrid', () => {
   })
 
   it('should update viewport', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     act(() => {
       result.current.updateViewport({
@@ -109,45 +103,35 @@ describe('useGhostGrid', () => {
   })
 
   it('should move node', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     const moved = result.current.moveNode('1', 2, 0)
     expect(moved).toBe(true)
   })
 
   it('should resize node', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     const resized = result.current.resizeNode('1', 6, 4)
     expect(resized).toBe(true)
   })
 
   it('should undo', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     const undone = result.current.undo()
     expect(undone).toBe(true)
   })
 
   it('should redo', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     const redone = result.current.redo()
     expect(redone).toBe(true)
   })
 
   it('should handle null setContainerSize', () => {
-    const { result } = renderHook(() =>
-      useGhostGrid({ initialNodes })
-    )
+    const { result } = renderHook(() => useGhostGrid({ initialNodes }))
 
     // setContainerSize should be defined but may be noop if host is null
     expect(result.current.setContainerSize).toBeDefined()

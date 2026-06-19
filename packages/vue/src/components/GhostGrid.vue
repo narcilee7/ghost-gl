@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<GhostGridProps<T>>(), {
   debounceMs: 16,
 })
 
-const emit = defineEmits<{
+const _emit = defineEmits<{
   stateChange: [state: RuntimeControllerState<T>]
   nodesChange: [nodes: readonly LayoutNode<T>[]]
 }>()
@@ -49,7 +49,7 @@ const grid = useGhostGrid(gridOptions)
 provide(GhostGridHostKey, grid.host as Ref<GridHost<unknown> | null>)
 provide(GhostGridContainerKey, containerRef)
 
-const containerStyle = computed(() => ({
+const _containerStyle = computed(() => ({
   height: grid.bounds.value?.height != null ? `${grid.bounds.value.height}px` : 'auto',
   overflow: 'auto',
   position: 'relative' as const,
@@ -57,10 +57,10 @@ const containerStyle = computed(() => ({
   ...props.style,
 }))
 
-const gridHeight = computed(() => grid.bounds.value?.height ?? 0)
-const materialized = computed(() => grid.materialized.value)
+const _gridHeight = computed(() => grid.bounds.value?.height ?? 0)
+const _materialized = computed(() => grid.materialized.value)
 
-const renderContext = (item: MaterializedNode<T>): GhostGridItemRenderContext<T> => {
+const _renderContext = (item: MaterializedNode<T>): GhostGridItemRenderContext<T> => {
   const node = grid.state.value?.nodes.find((n) => n.id === item.id)
   return {
     isDragging: grid.state.value?.interactionSession?.targetId === item.id,
@@ -106,19 +106,19 @@ onMounted(() => {
   <div
     ref="containerRef"
     :class="props.class"
-    :style="containerStyle"
+    :style="_containerStyle"
     data-ghost-grid=""
     :data-columns="props.columns"
   >
     <div
       :style="{
-        height: `${gridHeight}px`,
+        height: `${_gridHeight}px`,
         position: 'relative',
         width: '100%',
       }"
     >
       <div
-        v-for="item in materialized"
+        v-for="item in _materialized"
         :key="item.id"
         :data-ghost-id="item.id"
         :data-ghost-mode="item.mode"
@@ -130,9 +130,9 @@ onMounted(() => {
           width: `${item.rect.width}px`,
         }"
       >
-        <slot v-bind="renderContext(item as MaterializedNode<T>)">
+        <slot v-bind="_renderContext(item as MaterializedNode<T>)">
           <template v-if="props.renderItem">
-            <RenderFn :render="() => props.renderItem!(renderContext(item as MaterializedNode<T>))" />
+            <RenderFn :render="() => props.renderItem!(_renderContext(item as MaterializedNode<T>))" />
           </template>
         </slot>
       </div>

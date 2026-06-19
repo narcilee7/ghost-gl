@@ -1,8 +1,8 @@
-import type { LayoutNode, MaterializedNode, Rect } from 'ghost-gl-core'
-import React, { useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react'
-import { ScrollView } from '@lynx-js/lynx-ui-scroll-view'
 import type { ScrollViewRef } from '@lynx-js/lynx-ui-scroll-view'
+import { ScrollView } from '@lynx-js/lynx-ui-scroll-view'
 import type { CSSProperties } from '@lynx-js/types'
+import type { LayoutNode, MaterializedNode, Rect } from 'ghost-gl-core'
+import React, { type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { GhostGridProvider } from '../context/GhostGridContext'
 import { useGhostGrid } from '../hooks/useGhostGrid'
 import type { GhostGridContextValue, GhostGridItemRenderContext, GhostGridProps } from '../types'
@@ -38,9 +38,7 @@ import type { GhostGridContextValue, GhostGridItemRenderContext, GhostGridProps 
  * />
  * ```
  */
-export function GhostGrid<T = unknown>(
-  props: GhostGridProps<T>
-): React.JSX.Element {
+export function GhostGrid<T = unknown>(props: GhostGridProps<T>): React.JSX.Element {
   const {
     initialNodes = [],
     columns = 12,
@@ -79,7 +77,15 @@ export function GhostGrid<T = unknown>(
     debounceMs,
   })
 
-  const { controller, state, materialized, bounds, metrics, setViewport: rawSetViewport, host } = grid
+  const {
+    controller,
+    state,
+    materialized,
+    bounds,
+    metrics,
+    setViewport: rawSetViewport,
+    host,
+  } = grid
 
   // Ensure setViewport is always available
   const setViewport = rawSetViewport ?? (() => {})
@@ -87,25 +93,31 @@ export function GhostGrid<T = unknown>(
   // Handle layout to get container dimensions
   // Lynx uses onLayoutChange event - event.detail contains { id, width, height, ... }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleLayoutChange = useCallback((event: any) => {
-    const { width: layoutWidth, height: layoutHeight } = event.detail ?? event
-    grid.setContainerSize?.({ width: layoutWidth, height: layoutHeight })
-  }, [grid])
+  const handleLayoutChange = useCallback(
+    (event: any) => {
+      const { width: layoutWidth, height: layoutHeight } = event.detail ?? event
+      grid.setContainerSize?.({ width: layoutWidth, height: layoutHeight })
+    },
+    [grid]
+  )
 
   // Handle scroll events to update viewport
   // Lynx scroll event structure: { detail: { scrollTop, scrollLeft, scrollWidth, scrollHeight } }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleScrollEvent = useCallback((event: any) => {
-    const detail = event.detail ?? event
-    scrollOffsetRef.current = { scrollLeft: detail.scrollLeft, scrollTop: detail.scrollTop }
+  const handleScrollEvent = useCallback(
+    (event: any) => {
+      const detail = event.detail ?? event
+      scrollOffsetRef.current = { scrollLeft: detail.scrollLeft, scrollTop: detail.scrollTop }
 
-    setViewport({
-      left: detail.scrollLeft,
-      top: detail.scrollTop,
-      width: detail.scrollWidth ?? 0,
-      height: detail.scrollHeight ?? 0,
-    })
-  }, [setViewport])
+      setViewport({
+        left: detail.scrollLeft,
+        top: detail.scrollTop,
+        width: detail.scrollWidth ?? 0,
+        height: detail.scrollHeight ?? 0,
+      })
+    },
+    [setViewport]
+  )
 
   // Subscribe to state changes for callbacks
   useEffect(() => {

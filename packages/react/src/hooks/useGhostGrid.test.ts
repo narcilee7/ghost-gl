@@ -45,8 +45,8 @@ describe('useGhostGrid', () => {
 
     const initialA = result.current.materialized.find((m) => m.id === 'a')
     expect(initialA).toBeDefined()
-    const initialLeft = initialA!.rect.left
-    const initialTop = initialA!.rect.top
+    const initialLeft = initialA?.rect.left
+    const initialTop = initialA?.rect.top
 
     // Simulate drag interaction via controller API
     act(() => {
@@ -69,15 +69,15 @@ describe('useGhostGrid', () => {
     await waitFor(() => {
       const materializedA = result.current.materialized.find((m) => m.id === 'a')
       expect(materializedA).toBeDefined()
-      expect(materializedA!.rect.left).not.toBe(initialLeft)
-      expect(materializedA!.rect.top).not.toBe(initialTop)
+      expect(materializedA?.rect.left).not.toBe(initialLeft)
+      expect(materializedA?.rect.top).not.toBe(initialTop)
     })
 
     // Verify actual coordinates: with 12 cols in 1200px, columnWidth = 100
     // preview x=2 -> left = 2 * 100 = 200; preview y=1 -> top = 1 * 50 = 50
     const previewA = result.current.materialized.find((m) => m.id === 'a')
-    expect(previewA!.rect.left).toBe(200)
-    expect(previewA!.rect.top).toBe(50)
+    expect(previewA?.rect.left).toBe(200)
+    expect(previewA?.rect.top).toBe(50)
   })
 
   it('reverts materialized rects when interaction is cancelled', async () => {
@@ -99,7 +99,7 @@ describe('useGhostGrid', () => {
     })
 
     const controller = result.current.controller!
-    const initialLeft = result.current.materialized.find((m) => m.id === 'a')!.rect.left
+    const initialLeft = result.current.materialized.find((m) => m.id === 'a')?.rect.left
 
     act(() => {
       controller.beginInteraction({
@@ -111,7 +111,7 @@ describe('useGhostGrid', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.materialized.find((m) => m.id === 'a')!.rect.left).toBe(500)
+      expect(result.current.materialized.find((m) => m.id === 'a')?.rect.left).toBe(500)
     })
 
     act(() => {
@@ -119,7 +119,7 @@ describe('useGhostGrid', () => {
     })
 
     await waitFor(() => {
-      expect(result.current.materialized.find((m) => m.id === 'a')!.rect.left).toBe(initialLeft)
+      expect(result.current.materialized.find((m) => m.id === 'a')?.rect.left).toBe(initialLeft)
     })
   })
 })

@@ -1,6 +1,4 @@
-import type { GridHost } from 'ghost-gl-adapter-core'
-import type { GridMetrics, Rect, RuntimeControllerState } from 'ghost-gl-core'
-import React, { createContext, useCallback, useMemo, useRef, type ReactNode, type RefObject } from 'react'
+import React, { createContext, type ReactNode, useMemo } from 'react'
 import type { GhostGridContextValue } from '../types'
 
 /**

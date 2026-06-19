@@ -1,7 +1,7 @@
 import type { LayoutNode, RuntimeControllerState } from 'ghost-gl-core'
 import { GhostGrid } from 'ghost-gl-react-native'
 import { useMemo, useState } from 'react'
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 
 interface WidgetData {
   title: string

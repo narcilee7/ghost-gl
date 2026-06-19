@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { VNodeChild } from 'vue'
 
-const props = defineProps<{
+const _props = defineProps<{
   render: () => VNodeChild
 }>()
 </script>
 
 <template>
-  <component :is="props.render" />
+  <component :is="render" />
 </template>

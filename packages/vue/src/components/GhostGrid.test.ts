@@ -1,7 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick, ref } from 'vue'
 import { useGhostGrid } from '../composables/useGhostGrid'
-import type { LayoutNode } from 'ghost-gl-core'
 
 describe('useGhostGrid drag', () => {
   const nodes = [

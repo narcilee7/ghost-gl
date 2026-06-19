@@ -1,5 +1,5 @@
-import type { LayoutNode, MaterializedNode, Rect, RuntimeControllerState } from 'ghost-gl-core'
-import React, { useCallback, useEffect, useMemo, useRef, type ReactNode, type RefObject } from 'react'
+import type { LayoutNode, MaterializedNode } from 'ghost-gl-core'
+import React, { type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ScrollView, View, type ViewStyle } from 'react-native'
 import { GhostGridProvider } from '../context/GhostGridContext'
 import { useGhostGrid } from '../hooks/useGhostGrid'
@@ -36,9 +36,7 @@ import type { GhostGridContextValue, GhostGridItemRenderContext, GhostGridProps 
  * />
  * ```
  */
-export function GhostGrid<T = unknown>(
-  props: GhostGridProps<T>
-): React.JSX.Element {
+export function GhostGrid<T = unknown>(props: GhostGridProps<T>): React.JSX.Element {
   const {
     initialNodes = [],
     columns = 12,
@@ -77,29 +75,48 @@ export function GhostGrid<T = unknown>(
     debounceMs,
   })
 
-  const { controller, state, materialized, bounds, metrics, setViewport: rawSetViewport, host } = grid
+  const {
+    controller,
+    state,
+    materialized,
+    bounds,
+    metrics,
+    setViewport: rawSetViewport,
+    host,
+  } = grid
 
   // Ensure setViewport is always available
   const setViewport = rawSetViewport ?? (() => {})
 
   // Handle layout to get container dimensions
-  const handleLayout = useCallback((event: { nativeEvent: { layout: { width: number; height: number } } }) => {
-    const { width: layoutWidth, height: layoutHeight } = event.nativeEvent.layout
-    grid.setContainerSize?.({ width: layoutWidth, height: layoutHeight })
-  }, [grid])
+  const handleLayout = useCallback(
+    (event: { nativeEvent: { layout: { width: number; height: number } } }) => {
+      const { width: layoutWidth, height: layoutHeight } = event.nativeEvent.layout
+      grid.setContainerSize?.({ width: layoutWidth, height: layoutHeight })
+    },
+    [grid]
+  )
 
   // Handle scroll events to update viewport
-  const handleScroll = useCallback((event: { nativeEvent: { contentOffset: { x: number; y: number }; layoutMeasurement: { width: number; height: number } } }) => {
-    const { contentOffset, layoutMeasurement } = event.nativeEvent
-    scrollOffsetRef.current = { scrollLeft: contentOffset.x, scrollTop: contentOffset.y }
+  const handleScroll = useCallback(
+    (event: {
+      nativeEvent: {
+        contentOffset: { x: number; y: number }
+        layoutMeasurement: { width: number; height: number }
+      }
+    }) => {
+      const { contentOffset, layoutMeasurement } = event.nativeEvent
+      scrollOffsetRef.current = { scrollLeft: contentOffset.x, scrollTop: contentOffset.y }
 
-    setViewport({
-      left: contentOffset.x,
-      top: contentOffset.y,
-      width: layoutMeasurement.width,
-      height: layoutMeasurement.height,
-    })
-  }, [setViewport])
+      setViewport({
+        left: contentOffset.x,
+        top: contentOffset.y,
+        width: layoutMeasurement.width,
+        height: layoutMeasurement.height,
+      })
+    },
+    [setViewport]
+  )
 
   // Subscribe to state changes for callbacks
   useEffect(() => {
@@ -166,17 +183,20 @@ export function GhostGrid<T = unknown>(
   }, [bounds])
 
   // Render context for each item
-  const renderContext = useCallback((item: MaterializedNode<T>): GhostGridItemRenderContext<T> => {
-    const node = state?.nodes.find((n) => n.id === item.id)
-    return {
-      isDragging: state?.interactionSession?.targetId === item.id,
-      isResizing: false,
-      mode: item.mode,
-      node: (node ?? item.node) as LayoutNode<T>,
-      reason: item.reason,
-      rect: item.rect,
-    }
-  }, [state])
+  const renderContext = useCallback(
+    (item: MaterializedNode<T>): GhostGridItemRenderContext<T> => {
+      const node = state?.nodes.find((n) => n.id === item.id)
+      return {
+        isDragging: state?.interactionSession?.targetId === item.id,
+        isResizing: false,
+        mode: item.mode,
+        node: (node ?? item.node) as LayoutNode<T>,
+        reason: item.reason,
+        rect: item.rect,
+      }
+    },
+    [state]
+  )
 
   return (
     <GhostGridProvider value={contextValue}>

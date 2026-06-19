@@ -8,10 +8,7 @@ import type {
   RuntimeControllerState,
 } from 'ghost-gl-core'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type {
-  UseGhostGridOptions,
-  UseGhostGridReturn,
-} from '../types'
+import type { UseGhostGridOptions, UseGhostGridReturn } from '../types'
 
 /**
  * Hook for creating and managing a ghost-gl grid instance in Lynx.
