@@ -1,0 +1,61 @@
+---
+title: Lynx
+---
+
+# Lynx Adapter
+
+`ghost-gl-lynx` provides Lynx bindings for ghost-gl.
+
+## Installation
+
+```bash
+npm install ghost-gl-lynx ghost-gl-core
+```
+
+## GhostGrid Component
+
+```tsx
+import { GhostGrid } from 'ghost-gl-lynx'
+
+function App() {
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      onStateChange={setState}
+      renderItem={({ node, rect, mode }) => (
+        <view style={{ position: 'absolute', left: rect.left, top: rect.top, width: rect.width, height: rect.height }}>
+          {mode === 'live' ? <Chart /> : <Skeleton />}
+        </view>
+      )}
+    />
+  )
+}
+```
+
+## Lynx Events
+
+Lynx uses intrinsic events:
+
+```tsx
+<GhostGrid
+  onLayoutChange={(event) => {
+    const { width, height } = event.detail.layout
+  }}
+  onScroll={(event) => {
+    const { scrollTop, scrollLeft } = event.detail
+  }}
+/>
+```
+
+## ScrollView Integration
+
+```tsx
+<GhostGrid
+  scrollViewProps={{
+    scrollOrientation: 'vertical',
+    enableScroll: true,
+  }}
+/>
+```

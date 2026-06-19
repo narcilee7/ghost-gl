@@ -16,7 +16,7 @@
   </a>
 </p>
 
-> **⚠️ Project Status**: This is an active development project. The core engine is ready for use, but React/Vue bindings are still in development. See [Roadmap](#roadmap) for details.
+> **⚠️ Project Status**: Core engine and React/Vue adapters are production ready. React Native and Lynx adapters are in development. See [Roadmap](#roadmap) for details.
 
 ---
 
@@ -52,95 +52,29 @@ Viewport Query Performance (ops/sec):
 ## Installation
 
 ```bash
-# npm
+# Core engine
 npm install ghost-gl-core
 
-# pnpm
-pnpm add ghost-gl-core
-
-# yarn
-yarn add ghost-gl-core
-```
-
-### Framework Bindings
-
-```bash
-# React (coming soon)
-npm install ghost-gl-react
-
-# Vue (planned)
-npm install ghost-gl-vue
+# Framework adapters
+npm install ghost-gl-react       # React (production ready)
+npm install ghost-gl-vue         # Vue 3 (production ready)
+npm install ghost-gl-react-native # React Native (in development)
+npm install ghost-gl-lynx        # Lynx (in development)
 ```
 
 ## Quick Start
 
-### Basic Usage (Headless)
-
-```typescript
-import { LayoutRuntime, LayoutNode } from 'ghost-gl-core'
-
-// Define your grid items
-const nodes: LayoutNode<{ title: string }>[] = [
-  { id: 'widget-1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Chart A' } },
-  { id: 'widget-2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Editor B' } },
-  { id: 'widget-3', x: 0, y: 3, w: 8, h: 4, data: { title: 'Table C' } },
-]
-
-// Create runtime with 12-column grid
-const runtime = new LayoutRuntime({
-  nodes,
-  columns: 12,
-  rowHeight: 30,
-  policy: {
-    collisionDirection: 'vertical',
-    autoCompact: true,
-  },
-})
-
-// Subscribe to state changes
-const unsubscribe = runtime.controller.subscribe((state) => {
-  console.log('Visible nodes:', state.materialized)
-  console.log('Can undo:', state.canUndo)
-  console.log('Can redo:', state.canRedo)
-})
-
-// Plan materialization based on viewport
-const plan = runtime.controller.planMaterialization({
-  viewport: { left: 0, top: 0, width: 1200, height: 600 },
-  overscan: 2, // Extra rows to render outside viewport
-})
-
-// Execute transaction to move a node
-const result = runtime.controller.applyTransaction({
-  operations: [
-    {
-      type: 'move',
-      id: 'widget-1',
-      position: { x: 2, y: 0 },
-    },
-  ],
-})
-
-// Cleanup
-unsubscribe()
-runtime.dispose()
-```
-
-### React Integration (Ready)
+### React
 
 ```tsx
-import { GhostGrid, GhostGridSkeleton } from 'ghost-gl-react'
+import { GhostGrid } from 'ghost-gl-react'
 import type { LayoutNode } from 'ghost-gl-core'
 
-interface WidgetData {
-  title: string
-  type: 'chart' | 'editor' | 'table'
-}
-
 function Dashboard() {
-  const nodes: LayoutNode<WidgetData>[] = [
-    { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Chart A', type: 'chart' } },
-    { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Editor B', type: 'editor' } },
+  const nodes: LayoutNode<{ title: string }>[] = [
+    { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Chart A' } },
+    { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Editor B' } },
+    { id: '3', x: 0, y: 3, w: 8, h: 4, data: { title: 'Table C' } },
   ]
 
   return (
@@ -150,27 +84,46 @@ function Dashboard() {
       initialNodes={nodes}
       policy={{ collisionDirection: 'vertical', autoCompact: true }}
       renderItem={({ node, rect, mode }) => {
-        // mode is 'ghost' | 'shell' | 'live'
         switch (mode) {
           case 'ghost':
-            return null // Grid handles ghost positioning
+            return null
           case 'shell':
-            return <GhostGridSkeleton animation="pulse" />
+            return <Skeleton style={rect} />
           case 'live':
-            return (
-              <div style={{ padding: 16 }}>
-                <h3>{node.data.title}</h3>
-                <HeavyWidget type={node.data.type} />
-              </div>
-            )
+            return <HeavyWidget style={rect} data={node.data} />
         }
-      }}
-      onStateChange={(state) => {
-        console.log('Can undo:', state.canUndo)
       }}
     />
   )
 }
+```
+
+### Vue
+
+```vue
+<script setup lang="ts">
+import { GhostGrid } from 'ghost-gl-vue'
+
+const nodes = [
+  { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Chart A' } },
+  { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Editor B' } },
+]
+</script>
+
+<template>
+  <GhostGrid
+    :columns="12"
+    :row-height="50"
+    :initial-nodes="nodes"
+    :policy="{ collisionDirection: 'vertical', autoCompact: true }"
+  >
+    <template #default="{ node, rect, mode }">
+      <div :style="{ position: 'absolute', ...rect }">
+        {{ mode === 'live' ? node.data.title : 'Loading...' }}
+      </div>
+    </template>
+  </GhostGrid>
+</template>
 ```
 
 ## Three-State Materialization Model
@@ -183,7 +136,7 @@ ghost-gl's core innovation is the **budget-driven materialization scheduler** th
 │  ~0ms   │     │  ~30%   │     │  100%   │
 └─────────┘     └─────────┘     └─────────┘
   Layout          Skeleton        Full mount
-  only            placeholder     + interaction
+  only          placeholder     + interaction
 ```
 
 ### State Transitions
@@ -195,150 +148,52 @@ ghost-gl's core innovation is the **budget-driven materialization scheduler** th
 
 ### Budget Guarantee
 
-The scheduler ensures **never more than 16ms of mount/unmount work per frame**:
+The scheduler ensures **never more than 16ms of mount/unmount work per frame**.
 
-```typescript
-const plan = runtime.controller.planMaterialization({
-  viewport: { left: 0, top: 0, width: 1200, height: 800 },
-  profile: 'scrolling', // 'idle' | 'scrolling' | 'interacting'
-  budget: {
-    mountBudget: 8,      // ms per frame for mounting
-    unmountBudget: 4,    // ms per frame for cleanup
-    maxMountsPerFrame: 3,
-  },
-})
+## Packages
 
-// Plan.summary.mountsWithinBudget guarantees frame time
-```
-
-## API Reference
-
-### Core Classes
-
-#### `LayoutRuntime`
-
-Main entry point combining layout engine, spatial index, and controller.
-
-```typescript
-class LayoutRuntime<TData = unknown> {
-  constructor(options: LayoutRuntimeOptions<TData>)
-  
-  readonly controller: RuntimeController<TData>
-  readonly kernel: SpatialKernel<TData>
-  
-  dispose(): void
-}
-```
-
-#### `RuntimeController`
-
-Event-driven facade for all operations.
-
-```typescript
-class RuntimeController<TData = unknown> {
-  // Event subscription
-  on<K extends keyof RuntimeControllerEvents<TData>>(
-    event: K,
-    listener: RuntimeControllerEvents<TData>[K]
-  ): () => void
-  
-  // Debounced state subscription
-  subscribe(
-    listener: (state: RuntimeControllerState<TData>) => void,
-    options?: { debounceMs?: number; nodeFilter?: string[] }
-  ): () => void
-  
-  // Operations
-  applyTransaction(options: LayoutTransactionOptions): LayoutTransactionResult
-  applyOperation(options: LayoutOperationOptions): LayoutOperationResult
-  
-  // Materialization planning
-  planMaterialization(input: MaterializationPlanInput): MaterializationPlanResult
-  
-  // History
-  undo(): boolean
-  redo(): boolean
-  canUndo: boolean
-  canRedo: boolean
-  
-  // State
-  getState(): RuntimeControllerState<TData>
-}
-```
-
-### Layout Operations
-
-```typescript
-// Move a node (with collision resolution)
-runtime.controller.applyOperation({
-  type: 'move',
-  id: 'widget-1',
-  position: { x: 4, y: 2 },
-})
-
-// Resize a node
-runtime.controller.applyOperation({
-  type: 'resize',
-  id: 'widget-1',
-  size: { w: 6, h: 4 },
-  anchor: 'se', // Resize from southeast corner
-})
-
-// Batch multiple operations in a transaction
-runtime.controller.applyTransaction({
-  operations: [
-    { type: 'move', id: 'w1', position: { x: 0, y: 0 } },
-    { type: 'resize', id: 'w2', size: { w: 4, h: 3 } },
-    { type: 'insert', node: { id: 'w3', x: 8, y: 0, w: 4, h: 3 } },
-  ],
-})
-```
-
-### Spatial Queries
-
-```typescript
-// Direct kernel access for advanced queries
-const kernel = runtime.kernel
-
-// Viewport query with overscan
-const visible = kernel.queryViewport(
-  { left: 0, top: 0, width: 1200, height: 600 },
-  2 // overscan rows
-)
-
-// Collision detection
-const collisions = kernel.queryCollisions({
-  x: 4, y: 2, w: 4, h: 3,
-  excludeId: 'widget-1',
-})
-
-// K-nearest neighbors
-const nearest = kernel.queryKNearest(4, 2, 3)
-```
+| Package | Status | Description |
+|---------|--------|-------------|
+| `ghost-gl-core` | ✅ | Core layout engine |
+| `ghost-gl-adapter-core` | ✅ | Framework-agnostic host bridge |
+| `ghost-gl-react` | ✅ | React adapter (production) |
+| `ghost-gl-vue` | ✅ | Vue 3 adapter (production) |
+| `ghost-gl-react-native` | 🚧 | React Native adapter (in development) |
+| `ghost-gl-lynx` | 🚧 | Lynx adapter (in development) |
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Host (React/Vue)                        │
+│              Host (React / Vue / RN / Lynx)                │
 ├─────────────────────────────────────────────────────────────┤
-│  RuntimeController  │  InteractionManager  │  HistoryManager │
-├─────────────────────┴──────────────────────┴────────────────┤
-│                    LayoutRuntime (facade)                    │
+│                   ghost-gl-adapter-core                    │
+│              (createGridHost - framework agnostic)           │
 ├─────────────────────────────────────────────────────────────┤
-│  LayoutEngine       │  SpatialKernel       │  Scheduler      │
-│  - collision resolve│  - RBush R-tree      │  - 3-state      │
-│  - compact          │  - O(log n) queries  │  - budget-driven│
+│                      ghost-gl-core                        │
+│  RuntimeController │ SpatialKernel │ Scheduler             │
+│  - collision      │ - RBush R-tree │ - 3-state         │
+│  - compact        │ - O(log n)     │ - budget-driven    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Design Principles
 
-1. **Headless Core**: Framework-agnostic engine, thin framework bindings
-2. **Budget-First**: Frame time guarantees over eager rendering
+1. **Headless Core**: All logic in `ghost-gl-core`, framework bindings are thin adapters
+2. **Budget-First**: Never exceed 16ms frame budget for materialization
 3. **Spatial Locality**: RBush R-tree for efficient viewport queries
 4. **Immutable State**: All mutations through transactions with undo/redo
-5. **Observable**: Event-driven architecture with debounced subscriptions
+5. **Observable**: Event-driven with debounced subscriptions
+
+## Documentation
+
+📖 **Documentation Site**: https://narcilee7.github.io/ghost-gl/
+
+- [Introduction](https://narcilee7.github.io/ghost-gl/guide/introduction)
+- [Installation](https://narcilee7.github.io/ghost-gl/guide/installation)
+- [Quick Start](https://narcilee7.github.io/ghost-gl/guide/quick-start)
+- [Concepts](https://narcilee7.github.io/ghost-gl/guide/concepts)
+- [API Reference](https://narcilee7.github.io/ghost-gl/api/core/overview)
 
 ## Development
 
@@ -362,6 +217,9 @@ pnpm build
 # Lint and format
 pnpm lint
 pnpm format
+
+# Run documentation site
+cd docs && pnpm dev
 ```
 
 ### Project Structure
@@ -369,37 +227,40 @@ pnpm format
 ```
 ghost-gl/
 ├── packages/
-│   ├── core/          # Headless layout engine (this package)
-│   ├── react/         # React bindings (coming soon)
-│   └── vue/           # Vue bindings (planned)
+│   ├── core/              # Core layout engine
+│   ├── adapter-core/      # Framework-agnostic host bridge
+│   ├── react/            # React adapter (production)
+│   ├── vue/              # Vue 3 adapter (production)
+│   ├── react-native/     # React Native adapter (in dev)
+│   └── lynx/            # Lynx adapter (in dev)
 ├── apps/
-│   ├── bench-web/     # Interactive benchmark dashboard
-│   └── docs/          # Documentation site (planned)
-├── examples/          # Usage examples
-└── p_docs/            # Internal architecture docs
+│   └── bench-web/       # Browser benchmark dashboard
+├── docs/                 # Documentation site (rspress)
+├── examples/              # Framework examples
+└── e2e/                 # E2E tests
 ```
 
 ## Roadmap
 
-### Q2 2025
+### ✅ Completed
 - [x] Core layout engine with collision resolution
 - [x] RBush spatial indexing
 - [x] Budget-driven materialization scheduler
 - [x] Transaction system with undo/redo
 - [x] React bindings (`ghost-gl-react`)
-- [ ] Basic documentation site
+- [x] Vue bindings (`ghost-gl-vue`)
+- [x] Documentation site
 
-### Q3 2025
-- [ ] Vue bindings (`ghost-gl-vue`)
+### 🚧 In Development
+- [ ] React Native bindings (`ghost-gl-react-native`)
+- [ ] Lynx bindings (`ghost-gl-lynx`)
+
+### 📋 Planned
 - [ ] Animation support (FLIP transitions)
 - [ ] Touch/mobile gestures
 - [ ] Performance monitoring API
-
-### Q4 2025
 - [ ] Server-side rendering support
-- [ ] Persistence adapters (localStorage, IndexedDB)
 - [ ] Layout templates/presets
-- [ ] Accessibility audit
 
 ## Contributing
 
@@ -410,7 +271,3 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 MIT © [ghost-gl contributors](https://github.com/narcilee7/ghost-gl/graphs/contributors)
 
 ---
-
-<p align="center">
-  Built for dashboards that matter. 🎯
-</p>

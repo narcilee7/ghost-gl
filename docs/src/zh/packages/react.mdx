@@ -1,0 +1,74 @@
+---
+title: React
+---
+
+# React 适配器
+
+`ghost-gl-react` 提供 React 绑定。
+
+## 安装
+
+```bash
+npm install ghost-gl-react ghost-gl-core
+```
+
+## GhostGrid 组件
+
+```tsx
+import { GhostGrid } from 'ghost-gl-react'
+
+function App() {
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      onStateChange={(state) => console.log(state)}
+      renderItem={({ node, rect, mode }) => (
+        <div style={{ position: 'absolute', ...rect }}>
+          {mode === 'live' ? <Chart /> : <Skeleton />}
+        </div>
+      )}
+    />
+  )
+}
+```
+
+## useGhostGrid Hook
+
+需要更多控制时，直接使用 hook：
+
+```tsx
+import { useGhostGrid } from 'ghost-gl-react'
+
+function App() {
+  const grid = useGhostGrid({
+    columns: 12,
+    rowHeight: 50,
+    initialNodes: nodes,
+  })
+
+  return (
+    <div ref={grid.containerRef}>
+      {grid.materialized.map((item) => (
+        <div key={item.id} style={item.rect}>
+          <Item data={item.node.data} />
+        </div>
+      ))}
+    </div>
+  )
+}
+```
+
+## 渲染上下文
+
+```tsx
+interface GhostGridItemRenderContext<T> {
+  node: LayoutNode<T>
+  rect: Rect
+  mode: 'ghost' | 'shell' | 'live'
+  reason: MaterializedNode<T>['reason']
+  isDragging: boolean
+  isResizing: boolean
+}
+```

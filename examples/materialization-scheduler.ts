@@ -1,20 +1,20 @@
 /**
  * Materialization Scheduler Example
- * 
+ *
  * This example demonstrates ghost-gl's three-state materialization model:
  * - ghost: Zero-cost layout representation
  * - shell: Lightweight skeleton placeholder
  * - live: Full component with interaction
- * 
+ *
  * The scheduler ensures frame budget compliance (< 16ms per frame).
  */
 
 import {
-  LayoutNode,
+  type LayoutNode,
   LayoutRuntime,
   MaterializationMode,
-  SchedulerPlan,
-  SchedulerProfile,
+  type SchedulerPlan,
+  type SchedulerProfile,
 } from 'ghost-gl-core'
 
 // Simulate a heavy component with 50ms mount cost
@@ -78,11 +78,17 @@ function planWithProfile(
 function planIdleMode(scrollTop: number): SchedulerPlan {
   console.log('\n=== Idle Mode ===')
   const plan = planWithProfile(scrollTop, 'idle')
-  
-  console.log('Budget:', plan.summary.mountBudget, 'ms mount,', plan.summary.unmountBudget, 'ms unmount')
+
+  console.log(
+    'Budget:',
+    plan.summary.mountBudget,
+    'ms mount,',
+    plan.summary.unmountBudget,
+    'ms unmount'
+  )
   console.log('Mounts within budget:', plan.summary.mountsWithinBudget)
   console.log('Deferred to next frame:', plan.deferred.length)
-  
+
   return plan
 }
 
@@ -92,11 +98,17 @@ function planIdleMode(scrollTop: number): SchedulerPlan {
 function planScrollingMode(scrollTop: number): SchedulerPlan {
   console.log('\n=== Scrolling Mode ===')
   const plan = planWithProfile(scrollTop, 'scrolling')
-  
-  console.log('Budget:', plan.summary.mountBudget, 'ms mount,', plan.summary.unmountBudget, 'ms unmount')
+
+  console.log(
+    'Budget:',
+    plan.summary.mountBudget,
+    'ms mount,',
+    plan.summary.unmountBudget,
+    'ms unmount'
+  )
   console.log('Mounts within budget:', plan.summary.mountsWithinBudget)
   console.log('Deferred to next frame:', plan.deferred.length)
-  
+
   return plan
 }
 
@@ -106,11 +118,17 @@ function planScrollingMode(scrollTop: number): SchedulerPlan {
 function planInteractingMode(scrollTop: number): SchedulerPlan {
   console.log('\n=== Interacting Mode ===')
   const plan = planWithProfile(scrollTop, 'interacting')
-  
-  console.log('Budget:', plan.summary.mountBudget, 'ms mount,', plan.summary.unmountBudget, 'ms unmount')
+
+  console.log(
+    'Budget:',
+    plan.summary.mountBudget,
+    'ms mount,',
+    plan.summary.unmountBudget,
+    'ms unmount'
+  )
   console.log('Mounts within budget:', plan.summary.mountsWithinBudget)
   console.log('Deferred to next frame:', plan.deferred.length)
-  
+
   return plan
 }
 
@@ -119,16 +137,16 @@ function planInteractingMode(scrollTop: number): SchedulerPlan {
  */
 function planWithCustomBudget(scrollTop: number): SchedulerPlan {
   console.log('\n=== Custom Budget ===')
-  
+
   // Very conservative: only 4ms for mounts per frame
   const plan = planWithProfile(scrollTop, 'scrolling', {
     mountBudget: 4,
     unmountBudget: 2,
   })
-  
+
   console.log('Custom mount budget: 4ms')
   console.log('Mounts within budget:', plan.summary.mountsWithinBudget)
-  
+
   return plan
 }
 
@@ -156,13 +174,13 @@ function simulateRender(plan: SchedulerPlan, nodes: LayoutNode<HeavyWidget>[]) {
         // Zero cost: just layout position
         renderStats.ghost++
         break
-      
+
       case 'shell':
         // 30% of mount cost (~15ms)
         renderStats.shell++
         renderStats.totalCost += node.data.mountCost * 0.3
         break
-      
+
       case 'live':
         // Full mount cost (50ms)
         renderStats.live++
@@ -173,7 +191,7 @@ function simulateRender(plan: SchedulerPlan, nodes: LayoutNode<HeavyWidget>[]) {
 
   console.log('Render stats:', renderStats)
   console.log(`Estimated frame cost: ${renderStats.totalCost.toFixed(1)}ms`)
-  
+
   return renderStats
 }
 
@@ -187,7 +205,7 @@ function setupMaterializationListeners() {
       shell: '🐚',
       live: '⚡',
     }[event.mode]
-    
+
     console.log(`${emoji} ${event.nodeId}: ${event.previousMode} → ${event.mode} (${event.reason})`)
   })
 
@@ -203,12 +221,12 @@ function setupMaterializationListeners() {
  */
 function simulateScrolling() {
   console.log('\n=== Simulating Scroll Through Grid ===')
-  
+
   const scrollPositions = [0, 400, 800, 1200, 1600]
-  
+
   for (const scrollTop of scrollPositions) {
     console.log(`\n--- Scroll position: ${scrollTop}px ---`)
-    
+
     // Use scrolling profile during scroll
     const plan = planScrollingMode(scrollTop)
     simulateRender(plan, nodes)
@@ -220,14 +238,14 @@ function simulateScrolling() {
  */
 function simulateDragInteraction() {
   console.log('\n=== Simulating Drag Interaction ===')
-  
+
   // Start drag
   controller.applyOperation({
     type: 'move',
     id: 'heavy-0',
     position: { x: 1, y: 0 },
   })
-  
+
   // During drag, use interacting profile
   const plan = planInteractingMode(0)
   simulateRender(plan, nodes)

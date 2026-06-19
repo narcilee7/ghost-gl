@@ -4,14 +4,12 @@ import {
   createLayoutMutationContext,
   finalizeLayoutMutation,
   type LayoutMutationContext,
-  moveNode as moveLayoutNode,
   moveNodeWithContext,
   type NodePlacement,
   type NodeSize,
-  resizeNode as resizeLayoutNode,
   resizeNodeWithContext,
 } from '../layout'
-import type { LayoutNode } from '../types'
+import type { LayoutNode, LayoutPolicy } from '../types'
 
 export type LayoutOperation<T = unknown> =
   | {
@@ -40,6 +38,7 @@ export type LayoutOperation<T = unknown> =
 export interface LayoutOperationOptions<T = unknown> {
   constraints?: LayoutConstraints
   mutationContext?: LayoutMutationContext<T>
+  policy?: LayoutPolicy
 }
 
 export type LayoutOperationRejectionReason = 'constraint_violation' | 'node_not_found'
@@ -267,7 +266,10 @@ function applyMoveLayout<T = unknown>(
     return options.mutationContext.nodes
   }
 
-  return moveLayoutNode(nodes, operation.id, operation.placement)
+  const context = createLayoutMutationContext(nodes, options.policy ?? {})
+  moveNodeWithContext(context, operation.id, operation.placement)
+
+  return finalizeLayoutMutation(context)
 }
 
 function applyResizeLayout<T = unknown>(
@@ -281,13 +283,17 @@ function applyResizeLayout<T = unknown>(
     return options.mutationContext.nodes
   }
 
-  return resizeLayoutNode(nodes, operation.id, operation.size)
+  const context = createLayoutMutationContext(nodes, options.policy ?? {})
+  resizeNodeWithContext(context, operation.id, operation.size)
+
+  return finalizeLayoutMutation(context)
 }
 
 export function createOperationMutationContext<T = unknown>(
-  nodes: readonly LayoutNode<T>[]
+  nodes: readonly LayoutNode<T>[],
+  policy?: LayoutPolicy
 ): LayoutMutationContext<T> {
-  return createLayoutMutationContext(nodes)
+  return createLayoutMutationContext(nodes, policy ?? {})
 }
 
 export function finalizeOperationMutationContext<T = unknown>(

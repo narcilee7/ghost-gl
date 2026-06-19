@@ -11,11 +11,36 @@ export interface BenchmarkFixture {
 }
 
 export const FIXTURE_CONFIGS = [
-  { name: '100 items', nodeCount: 100, columns: 12, viewport: { left: 0, top: 800, width: 1440, height: 900 } },
-  { name: '500 items', nodeCount: 500, columns: 12, viewport: { left: 0, top: 3200, width: 1680, height: 1000 } },
-  { name: '1k items', nodeCount: 1000, columns: 16, viewport: { left: 0, top: 4800, width: 1680, height: 1000 } },
-  { name: '2k items', nodeCount: 2000, columns: 24, viewport: { left: 0, top: 9600, width: 2048, height: 1200 } },
-  { name: '5k items', nodeCount: 5000, columns: 32, viewport: { left: 0, top: 30000, width: 2560, height: 1500 } },
+  {
+    name: '100 items',
+    nodeCount: 100,
+    columns: 12,
+    viewport: { left: 0, top: 800, width: 1440, height: 900 },
+  },
+  {
+    name: '500 items',
+    nodeCount: 500,
+    columns: 12,
+    viewport: { left: 0, top: 3200, width: 1680, height: 1000 },
+  },
+  {
+    name: '1k items',
+    nodeCount: 1000,
+    columns: 16,
+    viewport: { left: 0, top: 4800, width: 1680, height: 1000 },
+  },
+  {
+    name: '2k items',
+    nodeCount: 2000,
+    columns: 24,
+    viewport: { left: 0, top: 9600, width: 2048, height: 1200 },
+  },
+  {
+    name: '5k items',
+    nodeCount: 5000,
+    columns: 32,
+    viewport: { left: 0, top: 30000, width: 2560, height: 1500 },
+  },
 ] as const
 
 const DEFAULT_METRICS: GridMetrics = {

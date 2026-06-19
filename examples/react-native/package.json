@@ -1,0 +1,23 @@
+{
+  "name": "ghost-gl-react-native-example",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "expo start",
+    "build": "tsc",
+    "lint": "biome check src",
+    "lint:fix": "biome check src --write"
+  },
+  "dependencies": {
+    "expo": "~52.0.0",
+    "ghost-gl-core": "workspace:*",
+    "ghost-gl-react-native": "workspace:*",
+    "react": "^19.0.0",
+    "react-native": ">=0.76.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.9.0"
+  }
+}

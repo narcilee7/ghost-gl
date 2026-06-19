@@ -24,6 +24,7 @@
     "provenance": true
   },
   "dependencies": {
+    "ghost-gl-adapter-core": "workspace:*",
     "ghost-gl-core": "workspace:*"
   },
   "peerDependencies": {

@@ -41,7 +41,7 @@ export function applyLayoutTransaction<T = unknown>(
     const previousNodes = cloneNodes(nextNodes)
 
     if (shouldReuseMutationContext(operation)) {
-      mutationContext ??= createOperationMutationContext(previousNodes)
+      mutationContext ??= createOperationMutationContext(previousNodes, options.policy)
     } else {
       mutationContext = undefined
     }

@@ -19,26 +19,22 @@ export function ResultsChart({ results }: ResultsChartProps) {
               <div className="bar-group">
                 <span className="bar-label">ghost-gl</span>
                 <div className="bar-track">
-                  <div
-                    className="bar ghostgl"
-                    style={{ width: `${ghostglPct}%` }}
-                  />
+                  <div className="bar ghostgl" style={{ width: `${ghostglPct}%` }} />
                 </div>
                 <span className="bar-value">{r.ghostglMs.toFixed(2)}ms</span>
               </div>
               <div className="bar-group">
                 <span className="bar-label">RGL</span>
                 <div className="bar-track">
-                  <div
-                    className="bar rgl"
-                    style={{ width: `${rglPct}%` }}
-                  />
+                  <div className="bar rgl" style={{ width: `${rglPct}%` }} />
                 </div>
                 <span className="bar-value">{r.rglMs.toFixed(2)}ms</span>
               </div>
             </div>
             <div className="speedup-badge">
-              {r.speedup >= 1 ? `${r.speedup.toFixed(1)}×` : `${(1 / r.speedup).toFixed(1)}× slower`}
+              {r.speedup >= 1
+                ? `${r.speedup.toFixed(1)}×`
+                : `${(1 / r.speedup).toFixed(1)}× slower`}
             </div>
           </div>
         )

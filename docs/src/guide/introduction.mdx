@@ -1,0 +1,35 @@
+---
+title: Introduction
+---
+
+# Introduction
+
+Ghost-GL is a high-performance virtualized grid layout engine designed for **heavy components** (charts, editors, tables) with mount costs of 10-100ms+.
+
+## Why Ghost-GL?
+
+Traditional virtualized grids assume lightweight items. When items are heavy (complex charts, rich editors), mounting them all at once causes frame drops.
+
+Ghost-GL solves this with **three-state materialization**:
+
+1. **Ghost** - Placeholder, not rendered
+2. **Shell** - Minimal render (skeleton, border)
+3. **Live** - Full component mounted
+
+## Key Concepts
+
+### Three-State Materialization
+
+| State | Description | Use Case |
+|-------|-------------|----------|
+| `ghost` | Not rendered | Items far from viewport |
+| `shell` | Skeleton/border only | Items approaching viewport |
+| `live` | Full component | Items in viewport |
+
+### Budget-Driven Scheduling
+
+Ghost-GL schedules materialization within a **16ms frame budget** to maintain 60fps. Only items that can be fully rendered within the budget are materialized.
+
+### Spatial Indexing
+
+Uses **RBush R-tree** for O(log n) spatial queries, enabling fast collision detection and viewport queries even with thousands of items.

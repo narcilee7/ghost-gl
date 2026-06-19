@@ -1,0 +1,66 @@
+---
+title: Adapter Core
+---
+
+# Adapter Core
+
+The `ghost-gl-adapter-core` package provides a framework-agnostic bridge between host frameworks and ghost-gl-core.
+
+## Installation
+
+```bash
+npm install ghost-gl-adapter-core
+```
+
+## createGridHost
+
+Creates a framework-agnostic grid host:
+
+```ts
+import { createGridHost } from 'ghost-gl-adapter-core'
+
+const host = createGridHost({
+  initialNodes: [
+    { id: '1', x: 0, y: 0, w: 4, h: 3 }
+  ],
+  columns: 12,
+  rowHeight: 50,
+  gapX: 10,
+  gapY: 10,
+  overscan: 2,
+  debounceMs: 16,
+})
+```
+
+## GridHost API
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `controller` | `RuntimeController` | Core controller |
+| `state` | `GridHostState` | Current state snapshot |
+| `materialized` | `MaterializedNode[]` | Items to render |
+| `isReady` | `boolean` | Initialization complete |
+
+## Methods
+
+| Method | Description |
+|--------|-------------|
+| `setViewport(rect)` | Update visible viewport |
+| `setContainerSize(size)` | Update container dimensions |
+| `moveNode(id, x, y)` | Move item |
+| `resizeNode(id, w, h)` | Resize item |
+| `beginDrag(input)` | Start drag interaction |
+| `updateDrag(input)` | Update drag position |
+| `endDrag()` | Commit drag |
+| `cancelDrag()` | Cancel drag |
+| `subscribe(listener)` | Subscribe to state changes |
+| `dispose()` | Release resources |
+
+## Framework Adapters
+
+Framework adapters (React, Vue, etc.) are thin wrappers around `GridHost`:
+
+1. Create `GridHost` via `createGridHost`
+2. Wire scroll/layout events to `host.setViewport`
+3. Wire pointer events to `host.beginDrag/updateDrag/endDrag`
+4. Subscribe and render `host.materialized`

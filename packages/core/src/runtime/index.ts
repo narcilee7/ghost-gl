@@ -22,6 +22,7 @@ import { applyLayoutTransaction, type LayoutTransactionResult } from '../transac
 import type {
   GridMetrics,
   LayoutNode,
+  LayoutPolicy,
   LayoutRect,
   MaterializationMode,
   MaterializedNode,
@@ -33,6 +34,7 @@ export interface LayoutRuntimeOptions<T = unknown> {
   constraints?: LayoutConstraints
   metrics: GridMetrics
   nodes?: readonly LayoutNode<T>[]
+  policy?: LayoutPolicy
 }
 
 export interface MaterializationPlanInput<T = unknown> extends Rect {
@@ -72,12 +74,14 @@ export class LayoutRuntime<T = unknown> {
   private modeById = new Map<string, MaterializationMode>()
   private nodeMap: Map<string, LayoutNode<T>>
   private nodes: LayoutNode<T>[]
+  private policy: LayoutPolicy
 
   constructor(options: LayoutRuntimeOptions<T>) {
     const nodes = [...(options.nodes ?? [])]
 
     this.constraints = options.constraints ?? {}
     this.metrics = options.metrics
+    this.policy = options.policy ?? {}
     assertLayoutNodes(nodes, this.constraints)
     this.nodes = nodes
     this.nodeMap = createNodeMap(this.nodes)
@@ -125,6 +129,7 @@ export class LayoutRuntime<T = unknown> {
   dispatch(operation: LayoutOperation<T>): LayoutOperationResult<T> {
     const result = applyLayoutOperation(this.nodes, operation, {
       constraints: this.constraints,
+      policy: this.policy,
     })
 
     if (result.status === 'rejected') {
@@ -141,6 +146,7 @@ export class LayoutRuntime<T = unknown> {
   dispatchAll(operations: readonly LayoutOperation<T>[]): LayoutTransactionResult<T> {
     const result = applyLayoutTransaction(this.nodes, operations, {
       constraints: this.constraints,
+      policy: this.policy,
     })
 
     if (!result.committed) {

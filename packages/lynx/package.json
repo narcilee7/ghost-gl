@@ -1,0 +1,52 @@
+{
+  "name": "ghost-gl-lynx",
+  "version": "0.0.0",
+  "description": "Lynx host package for ghost-gl.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@lynx-js/lynx-ui-common": "3.133.1",
+    "@lynx-js/lynx-ui-scroll-view": "3.133.1",
+    "@lynx-js/react": "0.121.2",
+    "@lynx-js/types": "4.0.0",
+    "ghost-gl-adapter-core": "workspace:*",
+    "ghost-gl-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@lynx-js/lynx-ui": ">=3.135.0"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --clean --dts --format esm,cjs",
+    "clean": "rimraf coverage dist",
+    "lint": "biome check package.json src tsconfig.json",
+    "lint:fix": "biome check package.json src tsconfig.json --write",
+    "test": "vitest run",
+    "test:lynx": "jest --config jest.config.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^22.0.0",
+    "ts-jest": "^29.2.0",
+    "tsup": "^8.0.0"
+  }
+}

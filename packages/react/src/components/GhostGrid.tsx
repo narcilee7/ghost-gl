@@ -1,7 +1,7 @@
 'use client'
 
 import type { Rect } from 'ghost-gl-core'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { GhostGridProvider } from '../context/GhostGridContext'
 import { GhostGridDndProvider } from '../context/GhostGridDndContext'
 import { useGhostGrid } from '../hooks/useGhostGrid'
@@ -67,7 +67,6 @@ export function GhostGrid<T = unknown, TSnapshot = unknown>(
   } = props
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const [viewport, setViewport] = useState<Rect | null>(null)
 
   // Default columns if not provided
   const columns = columnsProp ?? 12
@@ -92,50 +91,7 @@ export function GhostGrid<T = unknown, TSnapshot = unknown>(
 
   const grid = useGhostGrid<T>(gridOptions)
 
-  const { controller, state, materialized, bounds, metrics, updateViewport } = grid
-
-  // Track viewport changes
-  useEffect(() => {
-    if (!containerRef.current) return
-
-    const container = containerRef.current
-
-    const calculateViewport = () => {
-      const rect = container.getBoundingClientRect()
-      const scrollLeft = container.scrollLeft
-      const scrollTop = container.scrollTop
-
-      const newViewport: Rect = {
-        height: rect.height,
-        left: scrollLeft,
-        top: scrollTop,
-        width: containerWidth ?? rect.width,
-      }
-
-      setViewport(newViewport)
-      updateViewport(newViewport)
-    }
-
-    // Initial calculation
-    calculateViewport()
-
-    // Set up observers
-    const handleScroll = () => {
-      calculateViewport()
-    }
-
-    const handleResize = () => {
-      calculateViewport()
-    }
-
-    container.addEventListener('scroll', handleScroll, { passive: true })
-    window.addEventListener('resize', handleResize)
-
-    return () => {
-      container.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('resize', handleResize)
-    }
-  }, [containerWidth, updateViewport])
+  const { controller, state, materialized, bounds, metrics } = grid
 
   // Subscribe to state changes for callbacks
   useEffect(() => {
@@ -174,18 +130,20 @@ export function GhostGrid<T = unknown, TSnapshot = unknown>(
   }, [bounds?.height, containerWidth, style])
 
   // Create context value
+  const viewport = grid.host?.viewport ?? null
   const contextValue = useMemo<GhostGridContextValue<T>>(
     () => ({
+      host: grid.host,
       bounds,
       containerRef,
       controller,
       materialized: materialized as GhostGridContextValue<T>['materialized'],
       metrics,
-      setViewport,
+      setViewport: (next: Rect) => grid.host?.setViewport(next),
       state,
       viewport,
     }),
-    [bounds, controller, materialized, metrics, state, viewport]
+    [bounds, controller, grid.host, materialized, metrics, state, viewport]
   )
 
   // Expose imperative API

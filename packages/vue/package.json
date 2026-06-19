@@ -1,0 +1,48 @@
+{
+  "name": "ghost-gl-vue",
+  "version": "0.0.0",
+  "description": "Vue 3 host package for ghost-gl.",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "ghost-gl-adapter-core": "workspace:*",
+    "ghost-gl-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "scripts": {
+    "build": "vite build",
+    "clean": "rimraf coverage dist",
+    "lint": "biome check package.json src tsconfig.json vite.config.ts",
+    "lint:fix": "biome check package.json src tsconfig.json vite.config.ts --write",
+    "test": "vitest run",
+    "typecheck": "vue-tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/test-utils": "^2.4.6",
+    "vite": "^6.3.0",
+    "vite-plugin-dts": "^4.5.0",
+    "vue-tsc": "^2.2.0"
+  }
+}

@@ -1,0 +1,63 @@
+---
+title: 快速开始
+---
+
+# 快速开始
+
+## 基本用法
+
+```tsx
+import { GhostGrid } from 'ghost-gl-react'
+
+function Dashboard() {
+  const nodes = [
+    { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: '收入' } },
+    { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: '用户' } },
+    { id: '3', x: 8, y: 0, w: 4, h: 3, data: { title: '转化率' } },
+  ]
+
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      renderItem={({ node, rect, mode }) => (
+        <div style={{ position: 'absolute', ...rect }}>
+          {mode === 'live' ? (
+            <Chart title={node.data.title} />
+          ) : (
+            <Skeleton />
+          )}
+        </div>
+      )}
+    />
+  )
+}
+```
+
+## 网格配置
+
+| 配置 | 类型 | 默认值 | 说明 |
+|--------|------|---------|-------------|
+| `columns` | `number` | `12` | 网格列数 |
+| `rowHeight` | `number` | `50` | 每行高度（像素） |
+| `gapX` | `number` | `0` | 水平间距 |
+| `gapY` | `number` | `0` | 垂直间距 |
+| `overscan` | `number` | `2` | 视口外渲染的行数 |
+| `policy` | `LayoutPolicy` | - | 布局行为配置 |
+
+## 物化模式
+
+```tsx
+renderItem={({ node, rect, mode }) => {
+  if (mode === 'ghost') {
+    return null // 不渲染
+  }
+  
+  if (mode === 'shell') {
+    return <Skeleton style={rect} />
+  }
+  
+  return <HeavyComponent style={rect} data={node.data} />
+}}
+```

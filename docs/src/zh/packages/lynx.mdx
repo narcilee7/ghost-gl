@@ -1,0 +1,61 @@
+---
+title: Lynx
+---
+
+# Lynx 适配器
+
+`ghost-gl-lynx` 提供 Lynx 绑定。
+
+## 安装
+
+```bash
+npm install ghost-gl-lynx ghost-gl-core
+```
+
+## GhostGrid 组件
+
+```tsx
+import { GhostGrid } from 'ghost-gl-lynx'
+
+function App() {
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      onStateChange={setState}
+      renderItem={({ node, rect, mode }) => (
+        <view style={{ position: 'absolute', left: rect.left, top: rect.top, width: rect.width, height: rect.height }}>
+          {mode === 'live' ? <Chart /> : <Skeleton />}
+        </view>
+      )}
+    />
+  )
+}
+```
+
+## Lynx 事件
+
+Lynx 使用固有事件：
+
+```tsx
+<GhostGrid
+  onLayoutChange={(event) => {
+    const { width, height } = event.detail.layout
+  }}
+  onScroll={(event) => {
+    const { scrollTop, scrollLeft } = event.detail
+  }}
+/>
+```
+
+## ScrollView 配置
+
+```tsx
+<GhostGrid
+  scrollViewProps={{
+    scrollOrientation: 'vertical',
+    enableScroll: true,
+  }}
+/>
+```
