@@ -2,3 +2,4 @@ packages:
   - packages/*
   - examples/*
   - apps/*
+  - e2e
