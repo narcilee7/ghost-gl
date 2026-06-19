@@ -1,0 +1,72 @@
+---
+title: Concepts
+---
+
+# Concepts
+
+## Grid Layout
+
+Ghost-GL uses a **grid-based layout system** where items are positioned by their grid coordinates (x, y, w, h).
+
+```
+12 columns, rowHeight=50px
+
+Item { x: 0, y: 0, w: 4, h: 3 }
+├── Position: (0, 0) in grid units
+├── Size: 4 columns wide, 3 rows tall
+└── Pixel rect: { left: 0, top: 0, width: ~300, height: 150 }
+```
+
+## Three-State Materialization
+
+### State Machine
+
+```
+                    ┌─────────┐
+                    │  ghost  │
+                    └────┬────┘
+                         │ scroll into range
+                         ▼
+                    ┌─────────┐
+              ┌─────│  shell  │─────┐
+              │     └─────────┘     │
+              │ budget available     │ budget exceeded
+              ▼                       │
+        ┌─────────┐                   │
+        │  live   │───────────────────┘
+        └─────────┘  scroll out of range
+```
+
+### Materialization Reasons
+
+- `visible` - In viewport
+- `overscan` - Within overscan range
+- `budget` - Has budget to render
+
+## Collision Detection
+
+When items overlap, Ghost-GL automatically compacts them based on the configured policy:
+
+```ts
+policy={{
+  collisionDirection: 'vertical', // or 'horizontal'
+  autoCompact: true
+}}
+```
+
+## Drag and Drop
+
+Ghost-GL supports drag interactions via the host API:
+
+```tsx
+const host = useGhostGrid()
+
+// Start drag
+host.beginDrag({ nodeId: '1', pointerX: 100, pointerY: 200 })
+
+// Update drag position
+host.updateDrag({ pointerX: 150, pointerY: 250 })
+
+// Commit or cancel
+host.endDrag()  // or host.cancelDrag()
+```

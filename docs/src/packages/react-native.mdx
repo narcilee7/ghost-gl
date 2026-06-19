@@ -1,0 +1,68 @@
+---
+title: React Native
+---
+
+# React Native Adapter
+
+`ghost-gl-react-native` provides React Native bindings for ghost-gl.
+
+## Installation
+
+```bash
+npm install ghost-gl-react-native ghost-gl-core
+```
+
+## GhostGrid Component
+
+```tsx
+import { GhostGrid } from 'ghost-gl-react-native'
+
+function App() {
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      onStateChange={setState}
+      renderItem={({ node, rect, mode }) => (
+        <View style={[styles.item, rect]}>
+          {mode === 'live' ? <Chart /> : <Skeleton />}
+        </View>
+      )}
+    />
+  )
+}
+
+const styles = StyleSheet.create({
+  item: {
+    position: 'absolute',
+  },
+})
+```
+
+## Render Context
+
+```tsx
+interface GhostGridItemRenderContext<T> {
+  node: LayoutNode<T>
+  rect: Rect
+  mode: 'ghost' | 'shell' | 'live'
+  reason: MaterializedNode<T>['reason']
+  isDragging: boolean
+  isResizing: boolean
+}
+```
+
+## Events
+
+React Native uses `onLayout` and `onScroll` for viewport tracking:
+
+```tsx
+<GhostGrid
+  onLayout={(event) => {
+    const { width, height } = event.nativeEvent.layout
+    // Container size updated
+  }}
+  // ScrollView events handled automatically
+/>
+```

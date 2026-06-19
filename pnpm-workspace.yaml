@@ -3,3 +3,4 @@ packages:
   - examples/*
   - apps/*
   - e2e
+  - docs

@@ -1,0 +1,63 @@
+---
+title: Quick Start
+---
+
+# Quick Start
+
+## Basic Usage
+
+```tsx
+import { GhostGrid } from 'ghost-gl-react'
+
+function Dashboard() {
+  const nodes = [
+    { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Revenue' } },
+    { id: '2', x: 4, y: 0, w: 4, h: 3, data: { title: 'Users' } },
+    { id: '3', x: 8, y: 0, w: 4, h: 3, data: { title: 'Conversion' } },
+  ]
+
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      renderItem={({ node, rect, mode }) => (
+        <div style={{ position: 'absolute', ...rect }}>
+          {mode === 'live' ? (
+            <Chart title={node.data.title} />
+          ) : (
+            <Skeleton />
+          )}
+        </div>
+      )}
+    />
+  )
+}
+```
+
+## Grid Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `columns` | `number` | `12` | Number of grid columns |
+| `rowHeight` | `number` | `50` | Height of each row in pixels |
+| `gapX` | `number` | `0` | Horizontal gap between items |
+| `gapY` | `number` | `0` | Vertical gap between items |
+| `overscan` | `number` | `2` | Rows to render outside viewport |
+| `policy` | `LayoutPolicy` | - | Layout behavior configuration |
+
+## Materialization Modes
+
+```tsx
+renderItem={({ node, rect, mode }) => {
+  if (mode === 'ghost') {
+    return null // Not rendered
+  }
+  
+  if (mode === 'shell') {
+    return <Skeleton style={rect} />
+  }
+  
+  return <HeavyComponent style={rect} data={node.data} />
+}}
+```

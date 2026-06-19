@@ -1,0 +1,67 @@
+---
+title: Core 概述
+---
+
+# Core API 概述
+
+`ghost-gl-core` 包提供核心布局引擎。
+
+## 安装
+
+```bash
+npm install ghost-gl-core
+```
+
+## RuntimeController
+
+管理网格状态的主类：
+
+```ts
+import { RuntimeController } from 'ghost-gl-core'
+
+const controller = new RuntimeController({
+  columns: 12,
+  rowHeight: 50,
+  gapX: 0,
+  gapY: 0,
+})
+
+// 添加节点
+controller.addNodes([
+  { id: '1', x: 0, y: 0, w: 4, h: 3 }
+])
+
+// 订阅变更
+controller.subscribe((state) => {
+  console.log('状态变更:', state)
+})
+
+// 物化视口
+controller.setViewport({ left: 0, top: 0, width: 375, height: 812 })
+```
+
+## 状态
+
+```ts
+interface RuntimeControllerState<T = unknown> {
+  nodes: readonly LayoutNode<T>[]
+  bounds: Rect
+  metrics: GridMetrics
+  canUndo: boolean
+  canRedo: boolean
+  interactionSession: InteractionSession | null
+}
+```
+
+## 方法
+
+| 方法 | 返回值 | 说明 |
+|--------|---------|-------------|
+| `addNodes` | `void` | 添加布局节点 |
+| `removeNodes` | `void` | 按 ID 移除节点 |
+| `moveNode` | `boolean` | 移动节点到指定位置 |
+| `resizeNode` | `boolean` | 调整节点大小 |
+| `setViewport` | `void` | 设置可见视口 |
+| `undo` | `boolean` | 撤销上一个操作 |
+| `redo` | `boolean` | 重做已撤销的操作 |
+| `subscribe` | `Unsubscribe` | 订阅状态变更 |

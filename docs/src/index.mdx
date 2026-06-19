@@ -1,0 +1,103 @@
+---
+pageType: home
+---
+
+# Ghost-GL
+
+<div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+  <h2>High-Performance Virtualized Grid for Heavy Components</h2>
+  <p style={{ fontSize: '1.1rem', color: '#666', maxWidth: '600px', margin: '0 auto' }}>
+    Three-state materialization (ghost/shell/live) with budget-driven scheduling.
+    <br />Guaranteed 60fps, even with complex charts and editors.
+  </p>
+</div>
+
+## Why Ghost-GL?
+
+| Traditional Grid | Ghost-GL |
+|-------------------|---------|
+| Mount all items at once | Mount on-demand |
+| Frame drops with heavy components | Budget-driven scheduling |
+| O(n) viewport queries | O(log n) RBush queries |
+| Single framework | React, Vue, RN, Lynx |
+
+## Three States, Zero Compromise
+
+```
+Scroll into viewport
+     │
+     ▼
+┌─────────────────────────────────┐
+│  ghost → shell → live            │
+│  Not rendered → Skeleton → Full  │
+└─────────────────────────────────┘
+```
+
+Only items that **can mount within 16ms** are materialized. Heavy charts stay in shell mode until there's budget.
+
+## Quick Example
+
+```tsx
+import { GhostGrid } from 'ghost-gl-react'
+
+// Heavy component that takes 50ms to mount
+function Chart({ data }) {
+  return <ExpensiveChart data={data} />
+}
+
+// Ghost-GL handles materialization automatically
+<GhostGrid
+  columns={12}
+  rowHeight={50}
+  initialNodes={nodes}
+  renderItem={({ node, rect, mode }) => (
+    <div style={{ position: 'absolute', ...rect }}>
+      {mode === 'live' ? (
+        <Chart data={node.data} />    // 50ms
+      ) : mode === 'shell' ? (
+        <ChartSkeleton />               // 1ms
+      ) : null}                      // 0ms
+    </div>
+  )}
+/>
+```
+
+## Framework Support
+
+```bash
+# React
+npm install ghost-gl-react
+
+# Vue
+npm install ghost-gl-vue
+
+# React Native
+npm install ghost-gl-react-native
+
+# Lynx
+npm install ghost-gl-lynx
+```
+
+## Packages
+
+| Package | Status |
+|---------|--------|
+| `ghost-gl-core` | ✅ Core engine |
+| `ghost-gl-adapter-core` | ✅ Framework bridge |
+| `ghost-gl-react` | ✅ Production ready |
+| `ghost-gl-vue` | ✅ Production ready |
+| `ghost-gl-react-native` | 🚧 In development |
+| `ghost-gl-lynx` | 🚧 In development |
+
+---
+
+<div style={{ textAlign: 'center', marginTop: '3rem', padding: '2rem', background: '#f5f5f5', borderRadius: '8px' }}>
+  <h3>Ready to get started?</h3>
+  <p>
+    <a href="/guide/introduction">Introduction</a>
+    &nbsp;·&nbsp;
+    <a href="/guide/installation">Installation</a>
+    &nbsp;·&nbsp;
+    <a href="/guide/quick-start">Quick Start</a>
+  </p>
+</div>

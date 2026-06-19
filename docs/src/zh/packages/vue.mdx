@@ -1,0 +1,58 @@
+---
+title: Vue
+---
+
+# Vue 适配器
+
+`ghost-gl-vue` 提供 Vue 3 绑定。
+
+## 安装
+
+```bash
+npm install ghost-gl-vue ghost-gl-core
+```
+
+## GhostGrid 组件
+
+```vue
+<script setup lang="ts">
+import { GhostGrid } from 'ghost-gl-vue'
+
+const nodes = [
+  { id: '1', x: 0, y: 0, w: 4, h: 3, data: { title: 'Chart' } }
+]
+</script>
+
+<template>
+  <GhostGrid
+    :columns="12"
+    :row-height="50"
+    :initial-nodes="nodes"
+    @state-change="onStateChange"
+  >
+    <template #default="{ node, rect, mode }">
+      <div :style="{ position: 'absolute', ...rect }">
+        {{ mode === 'live' ? 'Chart' : 'Skeleton' }}
+      </div>
+    </template>
+  </GhostGrid>
+</template>
+```
+
+## useGhostGrid Composable
+
+```ts
+import { useGhostGrid } from 'ghost-gl-vue'
+
+const grid = useGhostGrid({
+  containerRef,
+  columns: 12,
+  rowHeight: 50,
+  initialNodes: nodes,
+})
+
+// 访问状态
+grid.state.value
+grid.materialized.value
+grid.metrics.value
+```

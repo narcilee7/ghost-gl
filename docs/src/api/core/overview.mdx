@@ -1,0 +1,67 @@
+---
+title: Core Overview
+---
+
+# Core API Overview
+
+The `ghost-gl-core` package provides the core layout engine.
+
+## Installation
+
+```bash
+npm install ghost-gl-core
+```
+
+## RuntimeController
+
+The main class for managing grid state:
+
+```ts
+import { RuntimeController } from 'ghost-gl-core'
+
+const controller = new RuntimeController({
+  columns: 12,
+  rowHeight: 50,
+  gapX: 0,
+  gapY: 0,
+})
+
+// Add nodes
+controller.addNodes([
+  { id: '1', x: 0, y: 0, w: 4, h: 3 }
+])
+
+// Subscribe to changes
+controller.subscribe((state) => {
+  console.log('State changed:', state)
+})
+
+// Materialize viewport
+controller.setViewport({ left: 0, top: 0, width: 375, height: 812 })
+```
+
+## State
+
+```ts
+interface RuntimeControllerState<T = unknown> {
+  nodes: readonly LayoutNode<T>[]
+  bounds: Rect
+  metrics: GridMetrics
+  canUndo: boolean
+  canRedo: boolean
+  interactionSession: InteractionSession | null
+}
+```
+
+## Methods
+
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `addNodes` | `void` | Add layout nodes |
+| `removeNodes` | `void` | Remove nodes by ID |
+| `moveNode` | `boolean` | Move node to position |
+| `resizeNode` | `boolean` | Resize node |
+| `setViewport` | `void` | Set visible viewport |
+| `undo` | `boolean` | Undo last operation |
+| `redo` | `boolean` | Redo undone operation |
+| `subscribe` | `Unsubscribe` | Subscribe to state changes |

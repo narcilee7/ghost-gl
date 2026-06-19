@@ -1,0 +1,72 @@
+---
+title: 核心概念
+---
+
+# 核心概念
+
+## 网格布局
+
+Ghost-GL 使用**网格定位系统**，项目通过网格坐标 (x, y, w, h) 定位。
+
+```
+12列, 行高=50px
+
+项目 { x: 0, y: 0, w: 4, h: 3 }
+├── 网格位置: (0, 0)
+├── 大小: 4列宽, 3行高
+└── 像素位置: { left: 0, top: 0, width: ~300, height: 150 }
+```
+
+## 三态物化
+
+### 状态机
+
+```
+                    ┌─────────┐
+                    │  ghost  │
+                    └────┬────┘
+                         │ 滚动进入范围
+                         ▼
+                    ┌─────────┐
+              ┌─────│  shell  │─────┐
+              │     └─────────┘     │
+              │ 预算可用            │ 预算超出
+              ▼                     │
+        ┌─────────┐                 │
+        │  live   │─────────────────┘
+        └─────────┘  滚动出范围
+```
+
+### 物化原因
+
+- `visible` - 在视口内
+- `overscan` - 在 overscan 范围内
+- `budget` - 有预算可渲染
+
+## 碰撞检测
+
+当项目重叠时，Ghost-GL 会根据配置策略自动紧凑：
+
+```ts
+policy={{
+  collisionDirection: 'vertical', // 或 'horizontal'
+  autoCompact: true
+}}
+```
+
+## 拖拽交互
+
+Ghost-GL 通过 host API 支持拖拽交互：
+
+```tsx
+const host = useGhostGrid()
+
+// 开始拖拽
+host.beginDrag({ nodeId: '1', pointerX: 100, pointerY: 200 })
+
+// 更新拖拽位置
+host.updateDrag({ pointerX: 150, pointerY: 250 })
+
+// 提交或取消
+host.endDrag()  // 或 host.cancelDrag()
+```

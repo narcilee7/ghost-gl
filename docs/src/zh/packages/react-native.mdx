@@ -1,0 +1,68 @@
+---
+title: React Native
+---
+
+# React Native 适配器
+
+`ghost-gl-react-native` 提供 React Native 绑定。
+
+## 安装
+
+```bash
+npm install ghost-gl-react-native ghost-gl-core
+```
+
+## GhostGrid 组件
+
+```tsx
+import { GhostGrid } from 'ghost-gl-react-native'
+
+function App() {
+  return (
+    <GhostGrid
+      columns={12}
+      rowHeight={50}
+      initialNodes={nodes}
+      onStateChange={setState}
+      renderItem={({ node, rect, mode }) => (
+        <View style={[styles.item, rect]}>
+          {mode === 'live' ? <Chart /> : <Skeleton />}
+        </View>
+      )}
+    />
+  )
+}
+
+const styles = StyleSheet.create({
+  item: {
+    position: 'absolute',
+  },
+})
+```
+
+## 渲染上下文
+
+```tsx
+interface GhostGridItemRenderContext<T> {
+  node: LayoutNode<T>
+  rect: Rect
+  mode: 'ghost' | 'shell' | 'live'
+  reason: MaterializedNode<T>['reason']
+  isDragging: boolean
+  isResizing: boolean
+}
+```
+
+## 事件
+
+React Native 使用 `onLayout` 和 `onScroll` 进行视口追踪：
+
+```tsx
+<GhostGrid
+  onLayout={(event) => {
+    const { width, height } = event.nativeEvent.layout
+    // 容器尺寸更新
+  }}
+  // ScrollView 事件自动处理
+/>
+```

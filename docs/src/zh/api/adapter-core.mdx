@@ -1,0 +1,66 @@
+---
+title: Adapter Core
+---
+
+# Adapter Core
+
+`ghost-gl-adapter-core` 包提供框架无关的桥接层。
+
+## 安装
+
+```bash
+npm install ghost-gl-adapter-core
+```
+
+## createGridHost
+
+创建框架无关的网格 host：
+
+```ts
+import { createGridHost } from 'ghost-gl-adapter-core'
+
+const host = createGridHost({
+  initialNodes: [
+    { id: '1', x: 0, y: 0, w: 4, h: 3 }
+  ],
+  columns: 12,
+  rowHeight: 50,
+  gapX: 10,
+  gapY: 10,
+  overscan: 2,
+  debounceMs: 16,
+})
+```
+
+## GridHost API
+
+| 属性 | 类型 | 说明 |
+|----------|------|-------------|
+| `controller` | `RuntimeController` | 核心控制器 |
+| `state` | `GridHostState` | 当前状态快照 |
+| `materialized` | `MaterializedNode[]` | 需要渲染的项目 |
+| `isReady` | `boolean` | 初始化完成 |
+
+## 方法
+
+| 方法 | 说明 |
+|--------|-------------|
+| `setViewport(rect)` | 更新可见视口 |
+| `setContainerSize(size)` | 更新容器尺寸 |
+| `moveNode(id, x, y)` | 移动项目 |
+| `resizeNode(id, w, h)` | 调整项目大小 |
+| `beginDrag(input)` | 开始拖拽交互 |
+| `updateDrag(input)` | 更新拖拽位置 |
+| `endDrag()` | 提交拖拽 |
+| `cancelDrag()` | 取消拖拽 |
+| `subscribe(listener)` | 订阅状态变更 |
+| `dispose()` | 释放资源 |
+
+## 框架适配器
+
+框架适配器（React、Vue 等）是 `GridHost` 的薄封装：
+
+1. 通过 `createGridHost` 创建 `GridHost`
+2. 将滚动/布局事件连接到 `host.setViewport`
+3. 将指针事件连接到 `host.beginDrag/updateDrag/endDrag`
+4. 订阅并渲染 `host.materialized`
