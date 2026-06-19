@@ -40,11 +40,13 @@
     "lint": "biome check package.json src tsconfig.json",
     "lint:fix": "biome check package.json src tsconfig.json --write",
     "test": "vitest run",
+    "test:lynx": "jest --config jest.config.js",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.0.0",
+    "ts-jest": "^29.2.0",
     "tsup": "^8.0.0"
   }
 }
